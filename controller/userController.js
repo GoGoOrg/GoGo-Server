@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const client = require('./db');
+const pool = require('../db.js');
 const jwt = require('jsonwebtoken');
 
 // Helper function
@@ -18,7 +18,7 @@ function checkUserAndGenerateToken(user, res) {
 // Get all users
 exports.getAll = async (req, res) => {
     try {
-        client.query('SELECT * FROM user', (err, results) => {
+        pool.query('SELECT * FROM "user"', (err, results) => {
             if (err) throw err;
 
             res.status(200).json({
@@ -35,7 +35,7 @@ exports.getAll = async (req, res) => {
 // Get one user
 exports.getOne = async (req, res) => {
     try {
-        client.query('SELECT * FROM user WHERE id = $1', [req.params.id], (err, results) => {
+        pool.query('SELECT * FROM "user" WHERE id = $1', [req.params.id], (err, results) => {
             if (err) throw err;
 
             res.status(200).json({
@@ -59,13 +59,13 @@ exports.update = async (req, res) => {
 
     try {
         const sql = `
-            UPDATE user
+            UPDATE "user"
             SET name = $1, email = $2, phone = $3, birthDate = $4, billingAddress = $5
             WHERE id = $6
         `;
         const values = [name, email, phone, birthDate, billingAddress, id];
 
-        client.query(sql, values, (err) => {
+        pool.query(sql, values, (err) => {
             if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
             res.status(200).json({ status: true, title: 'Updated successfully' });
@@ -85,7 +85,7 @@ exports.updateAvatar = async (req, res) => {
     }
 
     try {
-        client.query('UPDATE user SET avatar = $1 WHERE id = $2', [avatar, id], (err) => {
+        pool.query('UPDATE "user" SET avatar = $1 WHERE id = $2', [avatar, id], (err) => {
             if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
             res.status(200).json({ status: true, title: 'Avatar updated successfully' });
@@ -104,7 +104,7 @@ exports.register = async (req, res) => {
     }
 
     try {
-        client.query('SELECT * FROM user WHERE username = $1', [username], async (err, results) => {
+        pool.query('SELECT * FROM "user" WHERE username = $1', [username], async (err, results) => {
             if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
             if (results.length > 0) {
@@ -116,7 +116,7 @@ exports.register = async (req, res) => {
 
             const newUser = { username, password: hashedPassword, name, email, phone, birthDate, billingAddress };
 
-            client.query('INSERT INTO user SET $1', newUser, (err) => {
+            pool.query('INSERT INTO "user" SET $1', newUser, (err) => {
                 if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
                 res.status(200).json({ status: true, title: 'Registered successfully' });
@@ -136,7 +136,7 @@ exports.loginGoogle = async (req, res) => {
     }
 
     try {
-        client.query('SELECT * FROM user WHERE username = $1', [username], (err, results) => {
+        pool.query('SELECT * FROM "user" WHERE username = $1', [username], (err, results) => {
             if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
             if (results.length === 0) {
@@ -144,7 +144,7 @@ exports.loginGoogle = async (req, res) => {
                 const hashedPassword = bcrypt.hashSync(password, salt);
                 const newUser = { username, password: hashedPassword, name, email, avatar };
 
-                client.query('INSERT INTO user SET $1', newUser, (err, result) => {
+                pool.query('INSERT INTO "user" SET $1', newUser, (err, result) => {
                     if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
                     checkUserAndGenerateToken({ username, id: result.insertId }, res);
@@ -166,7 +166,7 @@ exports.getMe = async (req, res) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        client.query('SELECT * FROM user WHERE username = $1', [decoded.user], (err, results) => {
+        pool.query('SELECT * FROM "user" WHERE username = $1', [decoded.user], (err, results) => {
             if (err) return res.status(500).json({ status: false, message: err.message });
 
             if (results.length === 0) {
@@ -186,7 +186,7 @@ exports.getMe = async (req, res) => {
 // Delete user
 exports.delete = async (req, res) => {
     try {
-        client.query('DELETE FROM user WHERE id = $1', [req.params.id], (err) => {
+        pool.query('DELETE FROM "user" WHERE id = $1', [req.params.id], (err) => {
             if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
             res.status(200).json({ status: true, title: 'Deleted successfully' });
@@ -205,7 +205,7 @@ exports.login = async (req, res) => {
     }
 
     try {
-        client.query('SELECT * FROM user WHERE username = $1', [username], async (err, results) => {
+        pool.query('SELECT * FROM "user" WHERE username = $1', [username], async (err, results) => {
             if (err) return res.status(500).json({ status: 'fail', message: err.message });
 
             if (!results.length) return res.status(400).json({ status: false, errorMessage: 'No user found' });
@@ -231,7 +231,7 @@ exports.changePassword = async (req, res) => {
     }
 
     try {
-        client.query('SELECT * FROM user WHERE id = $1', [id], async (err, results) => {
+        pool.query('SELECT * FROM "user" WHERE id = $1', [id], async (err, results) => {
             if (err) return res.status(500).json({ status: 'fail', message: err.message });
 
             if (!results.length) return res.status(400).json({ status: false, errorMessage: 'User not found' });
@@ -244,7 +244,7 @@ exports.changePassword = async (req, res) => {
             const salt = bcrypt.genSaltSync(10);
             const hashedNewPassword = bcrypt.hashSync(newPassword, salt);
 
-            client.query('UPDATE user SET password = $1 WHERE id = $2', [hashedNewPassword, id], (err) => {
+            pool.query('UPDATE "user" SET password = $1 WHERE id = $2', [hashedNewPassword, id], (err) => {
                 if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
                 res.status(200).json({ status: true, title: 'Password changed successfully' });

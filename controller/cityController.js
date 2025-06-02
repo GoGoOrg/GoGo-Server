@@ -2,11 +2,11 @@ const pool = require('../db');
 
 exports.getAll = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM car ORDER BY createdat DESC');
+    const result = await pool.query('SELECT * FROM city ORDER BY createdat DESC');
     res.status(200).json({
       status: 'success',
       total: result.rowCount,
-      data: { cars: result.rows },
+      data: { citys: result.rows },
     });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
@@ -16,11 +16,11 @@ exports.getAll = async (req, res) => {
 exports.getOne = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('SELECT * FROM car WHERE id = $1', [id]);
+    const result = await pool.query('SELECT * FROM city WHERE id = $1', [id]);
     res.status(200).json({
       status: 'success',
       total: result.rowCount,
-      data: { car: result.rows },
+      data: { city: result.rows },
     });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
@@ -35,8 +35,8 @@ exports.create = async (req, res) => {
 
   try {
     const result = await pool.query(
-      'INSERT INTO car (name) VALUES ($1) RETURNING id',
-      [name, description]
+      'INSERT INTO city (name) VALUES ($1) RETURNING id',
+      [name]
     );
 
     res.status(201).json({
@@ -59,8 +59,8 @@ exports.update = async (req, res) => {
 
   try {
     await pool.query(
-      'UPDATE car SET name = $1 WHERE id = $2',
-      [name, description, id]
+      'UPDATE city SET name = $1 WHERE id = $2',
+      [name, id]
     );
 
     res.status(200).json({ status: true, name: 'Updated successfully.' });
@@ -72,7 +72,7 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query('DELETE FROM car WHERE id = $1', [id]);
+    await pool.query('DELETE FROM city WHERE id = $1', [id]);
     res.status(200).json({ status: true, name: 'Deleted successfully.' });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });

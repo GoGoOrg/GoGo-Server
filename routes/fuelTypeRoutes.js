@@ -1,15 +1,15 @@
 const express = require('express');
-const reviewControler = require('../controller/reviewController');
+const fuelTypeController = require('../controller/fuelTypeController');
 // const authMiddleware = require('../middleware/auth'); // optional suggestion
 
 const router = express.Router();
 
 // Feedback management
-router.get('/', reviewControler.getAll);
+router.get('/', fuelTypeController.getAll);
 router
   .route('/:id')
-  .get(reviewControler.getOne)
-  .patch(reviewControler.update)
-  .delete(reviewControler.delete);
+  .get(fuelTypeController.getOne)
+  .patch(fuelTypeController.update)
+  .delete(fuelTypeController.delete);
 
 module.exports = router;

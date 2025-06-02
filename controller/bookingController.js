@@ -2,11 +2,11 @@ const pool = require('../db');
 
 exports.getAll = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM car ORDER BY createdat DESC');
+    const result = await pool.query('SELECT * FROM booking ORDER BY createdat DESC');
     res.status(200).json({
       status: 'success',
       total: result.rowCount,
-      data: { cars: result.rows },
+      data: { bookings: result.rows },
     });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
@@ -16,11 +16,11 @@ exports.getAll = async (req, res) => {
 exports.getOne = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('SELECT * FROM car WHERE id = $1', [id]);
+    const result = await pool.query('SELECT * FROM booking WHERE id = $1', [id]);
     res.status(200).json({
       status: 'success',
       total: result.rowCount,
-      data: { car: result.rows },
+      data: { booking: result.rows },
     });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
@@ -28,15 +28,15 @@ exports.getOne = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  const { name } = req.body;
-  if (!name) {
-    return res.status(400).json({ status: false, errorMessage: 'Missing name.' });
+  const { userId, carId, status, startDateTime, endDateTime } = req.body;
+  if (!userId || !carId || !status || !startDateTime || !endDateTime) {
+    return res.status(400).json({ status: false, errorMessage: 'Missing one of the fields required.' });
   }
 
   try {
     const result = await pool.query(
-      'INSERT INTO car (name) VALUES ($1) RETURNING id',
-      [name, description]
+      'INSERT INTO booking (userid, carid, status, startdatetime, enddatetime) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+      [userId, carId, status, startDateTime, endDateTime]
     );
 
     res.status(201).json({
@@ -50,17 +50,17 @@ exports.create = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
-  const { name } = req.body;
+  const { userId, carId, status, startDateTime, endDateTime } = req.body;
   const { id } = req.params;
 
-  if (!name ) {
-    return res.status(400).json({ status: false, errorMessage: 'Missing name.' });
+  if (!userId || !carId || !status || !startDateTime || !endDateTime) {
+    return res.status(400).json({ status: false, errorMessage: 'Missing one of the fields required.' });
   }
 
   try {
     await pool.query(
-      'UPDATE car SET name = $1 WHERE id = $2',
-      [name, description, id]
+      'UPDATE booking SET userid = $1, carid = $2, status = $3, startDateTime = $4, endDateTime = $5,  WHERE id = $6',
+      [userId, carId, status, startDateTime, endDateTime, id]
     );
 
     res.status(200).json({ status: true, name: 'Updated successfully.' });
@@ -72,7 +72,7 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query('DELETE FROM car WHERE id = $1', [id]);
+    await pool.query('DELETE FROM booking WHERE id = $1', [id]);
     res.status(200).json({ status: true, name: 'Deleted successfully.' });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });

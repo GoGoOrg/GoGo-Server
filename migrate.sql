@@ -1,95 +1,223 @@
--- Base model (likely includes created_at, updated_at, etc.)
--- You can define it via inheritance or manually repeat these fields per table
+-- Base fields to be added to all models
+-- Can be used as a domain or just added manually
+-- For simplicity, added manually to each table
 
-CREATE TABLE "User" (
+CREATE TABLE "user" (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
-    hashed_password VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    phone_number VARCHAR(20),
-    full_name VARCHAR(255),
+    username VARCHAR NOT NULL,
+    password VARCHAR NOT NULL,
+    firstName VARCHAR,
+    lastName VARCHAR,
+    email VARCHAR UNIQUE,
+    phoneNumber VARCHAR,
+    avatar TEXT,
+    about TEXT,
+    role VARCHAR,
     birthday DATE,
-    gender VARCHAR(10),
-    address TEXT,
-    avatar_url TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    is_superuser BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    totalCars INT,
+    totalHired INT,
+    responsePercent FLOAT,
+    agreePercent FLOAT,
+    responseTime FLOAT,
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
 );
 
-CREATE TABLE "Car" (
+CREATE TABLE Feedback (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    brand VARCHAR(255),
-    model VARCHAR(255),
-    year INT,
-    price NUMERIC(10, 2),
-    seat_number INT,
-    door_number INT,
-    color VARCHAR(100),
-    mileage INT,
-    location TEXT,
+    title VARCHAR,
     description TEXT,
-    fuel_type_id INT REFERENCES "FuelType"(id),
-    transmission_type_id INT REFERENCES "TransmisionType"(id),
-    user_id INT REFERENCES "User"(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ischeck BOOLEAN,
+    userId INT REFERENCES "user"(id),
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
 );
 
-CREATE TABLE "FuelType" (
+CREATE TABLE FuelType (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    name VARCHAR,
+    description TEXT,
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
 );
 
-CREATE TABLE "TransmisionType" (
+
+CREATE TABLE TransmissionType (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    name VARCHAR,
+    description TEXT,
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
 );
 
-CREATE TABLE "Feedback" (
+CREATE TABLE City (
     id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES "User"(id),
-    message TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    name VARCHAR,
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
 );
 
-CREATE TABLE "Comment" (
+
+
+CREATE TABLE Brand (
     id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES "User"(id),
-    car_id INT REFERENCES "Car"(id),
-    content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    name VARCHAR,
+    description TEXT,
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
 );
 
-CREATE TABLE "Tag" (
+CREATE TABLE Car (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    name VARCHAR,
+    type VARCHAR,
+    licensePlate VARCHAR,
+    description VARCHAR,
+    regulation VARCHAR,
+    color VARCHAR,
+    seats INT,
+    doors INT,
+    price FLOAT,
+    ownerId INT REFERENCES "user"(id),
+    brandId INT REFERENCES Brand(id),
+    cityId INT REFERENCES City(id),
+    transmissionTypeId INT REFERENCES TransmissionType(id),
+    fuelTypeId INT REFERENCES FuelType(id),
+    totalRide INT,
+    totalHeart INT,
+    mortage BOOLEAN,
+    insurance BOOLEAN,
+    starNumber FLOAT,
+    avgRating FLOAT,
+    reviewCount FLOAT,
+    pricePerDay INT,
+    discountValue INT,
+    discountType VARCHAR,
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
 );
 
-CREATE TABLE "Car_Tag" (
+
+CREATE TABLE Booking (
     id SERIAL PRIMARY KEY,
-    car_id INT REFERENCES "Car"(id),
-    tag_id INT REFERENCES "Tag"(id),
-    
+    userId INT REFERENCES "user"(id),
+    carId INT REFERENCES Car(id),
+    status VARCHAR,
+    startDateTime TIMESTAMP,
+    endDateTime TIMESTAMP,
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
 );
 
-CREATE TABLE "Utility" (
+CREATE TABLE Review (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    content TEXT,
+    userId INT REFERENCES "user"(id),
+    carId INT REFERENCES Car(id),
+    star INT,
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
 );
 
-CREATE TABLE "Car_Utility" (
+CREATE TABLE Favorite (
     id SERIAL PRIMARY KEY,
-    car_id INT REFERENCES "Car"(id),
-    utility_id INT REFERENCES "Utility"(id)
+    userId INT REFERENCES "user"(id),
+    carId INT REFERENCES Car(id),
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
+);
+
+
+CREATE TABLE Tag (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR,
+    description VARCHAR,
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
+);
+
+
+
+
+CREATE TABLE CarImage (
+    id SERIAL PRIMARY KEY,
+    carId INT,
+    imageUrl TEXT,
+    isPrimary BOOLEAN,
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
+);
+
+CREATE TABLE Utility (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR,
+    description VARCHAR,
+    imageUrl TEXT,
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
+);
+
+
+CREATE TABLE Car_Tag (
+    id SERIAL PRIMARY KEY,
+    carId INT REFERENCES Car(id),
+    tagId INT REFERENCES Tag(id),
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
+);
+
+CREATE TABLE Car_Utility (
+    id SERIAL PRIMARY KEY,
+    carId INT REFERENCES Car(id),
+    utilityId INT REFERENCES Utility(id),
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
+);
+
+CREATE TABLE Promotion (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR,
+    description TEXT,
+    discountAmount INT,
+    discountPercent INT,
+    startDate DATE,
+    endDate DATE,
+    isActive BOOLEAN,
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
+);
+
+CREATE TABLE Car_Promotion (
+    id SERIAL PRIMARY KEY,
+    carId INT REFERENCES Car(id),
+    promotionId INT REFERENCES Promotion(id),
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
+);
+
+CREATE TABLE CarAvailability (
+    id SERIAL PRIMARY KEY,
+    carId INT REFERENCES Car(id),
+    startTime TIMESTAMP,
+    endTime TIMESTAMP,
+    createdAt TIMESTAMP,
+    updatedAt TIMESTAMP,
+    deletedAt TIMESTAMP
 );

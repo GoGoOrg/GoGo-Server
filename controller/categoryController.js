@@ -1,167 +1,88 @@
+const pool = require('../db');
+
 exports.getAll = async (req, res) => {
-    try {
-        connection.query('SELECT * FROM category  ORDER BY created_at DESC', (err, rows) => {
-            if (err) throw err;
-
-            console.log('Data received from Db:');
-            res.status(200).json({
-                status: 'success',
-                total: rows.length,
-                data: {
-                    category: rows,
-                },
-            });
-        });
-    } catch (err) {
-        res.status(404).json({
-            status: 'fail',
-            message: err,
-        });
-    }
+  try {
+    const result = await pool.query('SELECT * FROM category ORDER BY created_at DESC');
+    res.status(200).json({
+      status: 'success',
+      total: result.rowCount,
+      data: { category: result.rows },
+    });
+  } catch (err) {
+    res.status(500).json({ status: 'fail', message: err.message });
+  }
 };
+
 exports.getOne = async (req, res) => {
-    try {
-        connection.query('SELECT * FROM category WHERE catId = ?', req.params.id, (err, row) => {
-            if (err) throw err;
-
-            console.log('Data received from Db:');
-            res.status(200).json({
-                status: 'success',
-                total: row.length,
-                data: {
-                    category: row,
-                },
-            });
-        });
-    } catch (err) {
-        res.status(404).json({
-            status: 'fail',
-            message: err,
-        });
-    }
+  try {
+    const { id } = req.params;
+    const result = await pool.query('SELECT * FROM category WHERE "catId" = $1', [id]);
+    res.status(200).json({
+      status: 'success',
+      total: result.rowCount,
+      data: { category: result.rows },
+    });
+  } catch (err) {
+    res.status(500).json({ status: 'fail', message: err.message });
+  }
 };
-
 
 exports.create = async (req, res) => {
-    try {
-        if (req.body && req.body.name && req.body.description) {
+  const { name, description } = req.body;
+  if (!name || !description) {
+    return res.status(400).json({ status: false, errorMessage: 'Missing name or description.' });
+  }
 
-            const newCategory = {
-                'name': req.body.name,
-                'description': req.body.description
-            }
-
-            connection.query('SELECT * FROM category WHERE name = ?', newCategory.name, async (err, row) => {
-                if (err) {
-                    res.status(500).json({
-                        status: 'fail',
-                        message: err,
-                    });
-                };
-    
-                console.log('Data received from Db');
-
-                if (row == undefined || row.length == 0) {
-
-                    connection.query('INSERT INTO category SET ?', newCategory, (err, row) => {
-                        if (err) {
-                            console.log(err)
-                            res.status(400).json({
-                                errorMessage: err,
-                                status: false
-                            });
-                        } else
-                            res.status(200).json({
-                                status: true,
-                                title: 'Created Successfully.',
-                                id: row.insertId
-                            });
-                    })
-                    } else {
-
-                        res.status(400).json({
-                            errorMessage: `Category name ${req.body.name} already exist!`,
-                            status: false
-                        });
-                    }
-            });
-        } else {
-            res.status(400).json({
-                errorMessage: 'Add proper parameter first!',
-                status: false
-            });
-        }
-
-
-    } catch (err) {
-        res.status(404).json({
-            status: 'fail',
-            message: err,
-        });
+  try {
+    const exists = await pool.query('SELECT 1 FROM category WHERE name = $1', [name]);
+    if (exists.rowCount > 0) {
+      return res.status(400).json({
+        status: false,
+        errorMessage: `Category name "${name}" already exists.`,
+      });
     }
-};
 
-exports.delete = async (req, res) => {
-    try {
-        connection.query("DELETE FROM category WHERE catId = ?", req.params.id, (err, row) => {
-            if (err) {
-                console.log(err)
-                res.status(400).json({
-                    errorMessage: err,
-                    status: false
-                });
-            } else
-                res.status(200).json({
-                    status: true,
-                    title: 'Delete Successfully.'
-                });
-        }
-        )
-    } catch (err) {
-        res.status(404).json({
-            status: 'fail',
-            message: err,
-        });
-    }
+    const result = await pool.query(
+      'INSERT INTO category (name, description) VALUES ($1, $2) RETURNING "catId"',
+      [name, description]
+    );
+
+    res.status(201).json({
+      status: true,
+      title: 'Created successfully.',
+      id: result.rows[0].catId,
+    });
+  } catch (err) {
+    res.status(500).json({ status: 'fail', message: err.message });
+  }
 };
 
 exports.update = async (req, res) => {
-    try {
-        if (req.body && req.body.name && req.body.description) {
+  const { name, description } = req.body;
+  const { id } = req.params;
 
-            const newCat = {
-                'catId': req.params.id,
-                'name': req.body.name,
-                'description': req.body.description,
-            }
+  if (!name || !description) {
+    return res.status(400).json({ status: false, errorMessage: 'Missing name or description.' });
+  }
 
-            let sql = `UPDATE category SET 
-                name = '${newCat.name}',
-                description = '${newCat.description}'
-            WHERE catId = ${newCat.catId}`
+  try {
+    await pool.query(
+      'UPDATE category SET name = $1, description = $2 WHERE "catId" = $3',
+      [name, description, id]
+    );
 
-            connection.query(sql, (err, row) => {
-                if (err) {
-                    console.log(err)
-                    return;
-                } else
-                    res.status(200).json({
-                        status: true,
-                        title: 'Update Successfully.'
-                    });
-            }
-            )
-        } else {
-            res.status(400).json({
-                errorMessage: 'Add proper parameter first!',
-                status: false
-            });
-        }
-    } catch (err) {
-        console.log(err)
-        res.status(500).json({
-            status: 'fail',
-            message: err,
-        });
-    }
+    res.status(200).json({ status: true, title: 'Updated successfully.' });
+  } catch (err) {
+    res.status(500).json({ status: 'fail', message: err.message });
+  }
+};
+
+exports.delete = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM category WHERE "catId" = $1', [id]);
+    res.status(200).json({ status: true, title: 'Deleted successfully.' });
+  } catch (err) {
+    res.status(500).json({ status: 'fail', message: err.message });
+  }
 };

@@ -1,33 +1,15 @@
 const express = require('express');
-const prodController = require('../controller/carController');
+const carControler = require('../controller/carController');
+// const authMiddleware = require('../middleware/auth'); // optional suggestion
 
 const router = express.Router();
 
+// Feedback management
+router.get('/', carControler.getAll);
 router
-    .route('/')
-    .get(prodController.getAll)
-    .post(prodController.create);
-router
-    .route('/:id')
-    .get(prodController.getOne)
-    .patch(prodController.update)
-    .delete(prodController.delete);
-router
-    .route('/detail/:id')
-    .get(prodController.getOneDetails);
-router
-    .route('/brand/:id')
-    .get(prodController.getAllByBrandId);
-router
-    .route('/topsale/:id')
-    .get(prodController.getTopSales);
-router
-    .route('/detailbrand/:id')
-    .get(prodController.getAllDetailByBrandId);
-router
-    .route('/category/:id')
-    .get(prodController.getAllByCategoryId);
-router
-    .route('/categorynolimit/:id')
-    .get(prodController.getAllByCategoryIdNoLimit);
+  .route('/:id')
+  .get(carControler.getOne)
+  .patch(carControler.update)
+  .delete(carControler.delete);
+
 module.exports = router;

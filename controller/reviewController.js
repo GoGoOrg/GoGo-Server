@@ -2,63 +2,11 @@ const pool = require('../db');
 
 exports.getAll = async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT r.*, u.name, u.email, u.avatar, c.name AS "carName"
-      FROM review r
-      JOIN user u ON r."userId" = u.id
-      JOIN car c ON r."carId" = c.id
-    `);
-
+    const result = await pool.query('SELECT * FROM review ORDER BY createdat DESC');
     res.status(200).json({
       status: 'success',
       total: result.rowCount,
-      data: {
-        review: result.rows,
-      },
-    });
-  } catch (err) {
-    res.status(500).json({ status: 'fail', message: err.message });
-  }
-};
-
-exports.getAllByCarId = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await pool.query(`
-      SELECT r.*, u.name, u.email, u.avatar
-      FROM review r
-      JOIN user u ON r."userId" = u.id
-      WHERE r."carId" = $1
-    `, [id]);
-
-    res.status(200).json({
-      status: 'success',
-      total: result.rowCount,
-      data: {
-        review: result.rows,
-      },
-    });
-  } catch (err) {
-    res.status(500).json({ status: 'fail', message: err.message });
-  }
-};
-
-exports.getAllByCarIdAndUserId = async (req, res) => {
-  try {
-    const { carId, userId } = req.params;
-    const result = await pool.query(`
-      SELECT r.*, u.name, u.email, u.avatar
-      FROM review r
-      JOIN user u ON r."userId" = u.id
-      WHERE r."carId" = $1 AND u.id = $2
-    `, [carId, userId]);
-
-    res.status(200).json({
-      status: 'success',
-      total: result.rowCount,
-      data: {
-        review: result.rows,
-      },
+      data: { reviews: result.rows },
     });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
@@ -69,13 +17,10 @@ exports.getOne = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query('SELECT * FROM review WHERE id = $1', [id]);
-
     res.status(200).json({
       status: 'success',
       total: result.rowCount,
-      data: {
-        review: result.rows,
-      },
+      data: { review: result.rows },
     });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
@@ -83,39 +28,42 @@ exports.getOne = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
+  const { content, userId, carId, star } = req.body;
+  if (!content || !userId || !carId || !star) {
+    return res.status(400).json({ status: false, errorMessage: 'Missing one of the fields required.' });
+  }
+
   try {
-    const { carId, userId, content, star } = req.body;
+    const result = await pool.query(
+      'INSERT INTO review (content, userId, carId, star) VALUES ($1, $2, $3, $4) RETURNING id',
+      [content, userId, carId, star]
+    );
 
-    if (!carId || !userId || !content || !star) {
-      return res.status(400).json({ status: false, errorMessage: 'Missing required fields' });
-    }
-
-    await pool.query(`
-      INSERT INTO review ("carId", "userId", content, star)
-      VALUES ($1, $2, $3, $4)
-    `, [carId, userId, content, star]);
-
-    res.status(201).json({ status: true, title: 'Created successfully' });
+    res.status(201).json({
+      status: true,
+      title: 'Created successfully.',
+      id: result.rows[0].id,
+    });
   } catch (err) {
-    res.status(500).json({ status: false, errorMessage: err.message });
+    res.status(500).json({ status: 'fail', message: err.message });
   }
 };
 
 exports.update = async (req, res) => {
+  const { content, userId, carId, star } = req.body;
+  const { id } = req.params;
+
+  if (!content || !userId || !carId || !star) {
+    return res.status(400).json({ status: false, errorMessage: 'Missing one of the fields required.' });
+  }
+
   try {
-    const { id } = req.params;
-    const { content, star } = req.body;
+    await pool.query(
+      'UPDATE review SET content = $1, userid = $2, carid = $3, star = $4  WHERE id = $5',
+      [content, userId, carId, star, id]
+    );
 
-    if (!content || !star) {
-      return res.status(400).json({ status: false, errorMessage: 'Missing required fields' });
-    }
-
-    await pool.query(`
-      UPDATE review SET content = $1, star = $2, updated_at = NOW()
-      WHERE "reviewId" = $3
-    `, [content, star, id]);
-
-    res.status(200).json({ status: true, title: 'Updated successfully' });
+    res.status(200).json({ status: true, name: 'Updated successfully.' });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
   }
@@ -124,10 +72,8 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const { id } = req.params;
-
     await pool.query('DELETE FROM review WHERE id = $1', [id]);
-
-    res.status(200).json({ status: true, title: 'Deleted successfully' });
+    res.status(200).json({ status: true, name: 'Deleted successfully.' });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
   }

@@ -2,11 +2,11 @@ const pool = require('../db');
 
 exports.getAll = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM car ORDER BY createdat DESC');
+    const result = await pool.query('SELECT * FROM feedback ORDER BY createdat DESC');
     res.status(200).json({
       status: 'success',
       total: result.rowCount,
-      data: { cars: result.rows },
+      data: { feedbacks: result.rows },
     });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
@@ -16,11 +16,11 @@ exports.getAll = async (req, res) => {
 exports.getOne = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('SELECT * FROM car WHERE id = $1', [id]);
+    const result = await pool.query('SELECT * FROM feedback WHERE id = $1', [id]);
     res.status(200).json({
       status: 'success',
       total: result.rowCount,
-      data: { car: result.rows },
+      data: { feedback: result.rows },
     });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
@@ -28,15 +28,15 @@ exports.getOne = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  const { name } = req.body;
-  if (!name) {
-    return res.status(400).json({ status: false, errorMessage: 'Missing name.' });
+  const { title, description } = req.body;
+  if (!title || !description) {
+    return res.status(400).json({ status: false, errorMessage: 'Missing title or description.' });
   }
 
   try {
     const result = await pool.query(
-      'INSERT INTO car (name) VALUES ($1) RETURNING id',
-      [name, description]
+      'INSERT INTO feedback (title, description) VALUES ($1, $2) RETURNING id',
+      [title, description]
     );
 
     res.status(201).json({
@@ -50,20 +50,20 @@ exports.create = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
-  const { name } = req.body;
+  const { title, description } = req.body;
   const { id } = req.params;
 
-  if (!name ) {
-    return res.status(400).json({ status: false, errorMessage: 'Missing name.' });
+  if (!title || !description) {
+    return res.status(400).json({ status: false, errorMessage: 'Missing title or description.' });
   }
 
   try {
     await pool.query(
-      'UPDATE car SET name = $1 WHERE id = $2',
-      [name, description, id]
+      'UPDATE feedback SET title = $1, description = $2 WHERE id = $3',
+      [title, description, id]
     );
 
-    res.status(200).json({ status: true, name: 'Updated successfully.' });
+    res.status(200).json({ status: true, title: 'Updated successfully.' });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
   }
@@ -72,8 +72,8 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query('DELETE FROM car WHERE id = $1', [id]);
-    res.status(200).json({ status: true, name: 'Deleted successfully.' });
+    await pool.query('DELETE FROM feedback WHERE id = $1', [id]);
+    res.status(200).json({ status: true, title: 'Deleted successfully.' });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
   }

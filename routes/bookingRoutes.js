@@ -1,15 +1,15 @@
 const express = require('express');
-const reviewControler = require('../controller/reviewController');
+const bookingControler = require('../controller/bookingController');
 // const authMiddleware = require('../middleware/auth'); // optional suggestion
 
 const router = express.Router();
 
 // Feedback management
-router.get('/', reviewControler.getAll);
+router.get('/', bookingControler.getAll);
 router
   .route('/:id')
-  .get(reviewControler.getOne)
-  .patch(reviewControler.update)
-  .delete(reviewControler.delete);
+  .get(bookingControler.getOne)
+  .patch(bookingControler.update)
+  .delete(bookingControler.delete);
 
 module.exports = router;
