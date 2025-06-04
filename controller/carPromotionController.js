@@ -2,11 +2,11 @@ const pool = require('../db');
 
 exports.getAll = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM tag ORDER BY createdat DESC');
+    const result = await pool.query('SELECT * FROM car_promotion ORDER BY createdat DESC');
     res.status(200).json({
       status: 'success',
       total: result.rowCount,
-      data: { tags: result.rows },
+      data: { carpromotions: result.rows },
     });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
@@ -16,11 +16,11 @@ exports.getAll = async (req, res) => {
 exports.getOne = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('SELECT * FROM tag WHERE id = $1', [id]);
+    const result = await pool.query('SELECT * FROM car_promotion WHERE id = $1', [id]);
     res.status(200).json({
       status: 'success',
       total: result.rowCount,
-      data: { tag: result.rows },
+      data: { carpromotion: result.rows },
     });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
@@ -28,15 +28,15 @@ exports.getOne = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  const {name, description} = req.body;
-  if (!name || !description) {
+  const {carId, promotionId} = req.body;
+  if (!carId || !promotionId) {
     return res.status(400).json({ status: false, errorMessage: 'Missing one of the fields required.' });
   }
 
   try {
     const result = await pool.query(
-      'INSERT INTO tag (name, description) VALUES ($1, $2) RETURNING id',
-      [name, description]
+      'INSERT INTO carpromotion (carId, promotionId) VALUES ($1, $2) RETURNING id',
+      [carId, promotionId]
     );
 
     res.status(201).json({
@@ -50,17 +50,17 @@ exports.create = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
-  const { name, description } = req.body;
+  const { carId, promotionId } = req.body;
   const { id } = req.params;
 
-  if (!name || !description) {
+  if (!carId || !promotionId) {
     return res.status(400).json({ status: false, errorMessage: 'Missing one of the fields required.' });
   }
 
   try {
     await pool.query(
-      'UPDATE tag SET name = $1, description = $2 WHERE id = $3',
-      [ name, description, id]
+      'UPDATE carpromotion SET carid = $1, promotionId = $2 WHERE id = $3',
+      [ carId, promotionId, id]
     );
 
     res.status(200).json({ status: true, name: 'Updated successfully.' });
@@ -72,7 +72,7 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query('DELETE FROM tag WHERE id = $1', [id]);
+    await pool.query('DELETE FROM car_promotion WHERE id = $1', [id]);
     res.status(200).json({ status: true, name: 'Deleted successfully.' });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });

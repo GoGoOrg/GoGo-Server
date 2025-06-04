@@ -1,18 +1,15 @@
 const express = require('express');
-const tagController = require('./../controller/tagController');
+const tagController = require('../controller/tagController');
+// const authMiddleware = require('../middleware/auth'); // optional suggestion
 
 const router = express.Router();
 
+// tag management
+router.get('/', tagController.getAll);
 router
-    .route('/')
-    .get(tagController.getAll)
-    .post(tagController.create)
-router
-    .route('/:id')
-    .get(tagController.getOne)
-    .delete(tagController.delete)
-    .patch(tagController.update);
-router
-    .route('/top/25')
-    .get(tagController.getTop);
+  .route('/:id')
+  .get(tagController.getOne)
+  .patch(tagController.update)
+  .delete(tagController.delete);
+
 module.exports = router;

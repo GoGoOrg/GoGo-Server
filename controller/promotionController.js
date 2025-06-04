@@ -2,11 +2,11 @@ const pool = require('../db');
 
 exports.getAll = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM tag ORDER BY createdat DESC');
+    const result = await pool.query('SELECT * FROM promotion ORDER BY createdat DESC');
     res.status(200).json({
       status: 'success',
       total: result.rowCount,
-      data: { tags: result.rows },
+      data: { promotions: result.rows },
     });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
@@ -16,11 +16,11 @@ exports.getAll = async (req, res) => {
 exports.getOne = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('SELECT * FROM tag WHERE id = $1', [id]);
+    const result = await pool.query('SELECT * FROM promotion WHERE id = $1', [id]);
     res.status(200).json({
       status: 'success',
       total: result.rowCount,
-      data: { tag: result.rows },
+      data: { promotion: result.rows },
     });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
@@ -28,15 +28,15 @@ exports.getOne = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  const {name, description} = req.body;
-  if (!name || !description) {
+  const {name, description, discountAmount, discountPercent, startDate, endDate, isActive} = req.body;
+  if (!name || !description || !discountAmount || !discountPercent || !startDate || !endDate || !isActive) {
     return res.status(400).json({ status: false, errorMessage: 'Missing one of the fields required.' });
   }
 
   try {
     const result = await pool.query(
-      'INSERT INTO tag (name, description) VALUES ($1, $2) RETURNING id',
-      [name, description]
+      'INSERT INTO promotion (name, description, discountAmount, discountPercent, startDate, endDate, isActive) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
+      [name, description, discountAmount, discountPercent, startDate, endDate, isActive]
     );
 
     res.status(201).json({
@@ -50,17 +50,17 @@ exports.create = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
-  const { name, description } = req.body;
+  const {name, description, discountAmount, discountPercent, startDate, endDate, isActive} = req.body;
   const { id } = req.params;
 
-  if (!name || !description) {
+  if (!name || !description || !discountAmount || !discountPercent || !startDate || !endDate || !isActive) {
     return res.status(400).json({ status: false, errorMessage: 'Missing one of the fields required.' });
   }
 
   try {
     await pool.query(
-      'UPDATE tag SET name = $1, description = $2 WHERE id = $3',
-      [ name, description, id]
+      'UPDATE promotion SET name = $1, description = $2, discountAmount = $3, discountPercent = $4, startDate = $5, endDate = $6, isActive = $7 WHERE id = $8',
+      [name, description, discountAmount, discountPercent, startDate, endDate, isActive, id]
     );
 
     res.status(200).json({ status: true, name: 'Updated successfully.' });
@@ -72,7 +72,7 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query('DELETE FROM tag WHERE id = $1', [id]);
+    await pool.query('DELETE FROM promotion WHERE id = $1', [id]);
     res.status(200).json({ status: true, name: 'Deleted successfully.' });
   } catch (err) {
     res.status(500).json({ status: 'fail', message: err.message });
