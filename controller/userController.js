@@ -18,7 +18,7 @@ function checkUserAndGenerateToken(user, res) {
 // Get all users
 exports.getAll = async (req, res) => {
     try {
-        pool.query('SELECT * FROM "user"', (err, results) => {
+        pool.query('SELECT * FROM users', (err, results) => {
             if (err) throw err;
 
             res.status(200).json({
@@ -35,7 +35,7 @@ exports.getAll = async (req, res) => {
 // Get one user
 exports.getOne = async (req, res) => {
     try {
-        pool.query('SELECT * FROM "user" WHERE id = $1', [req.params.id], (err, results) => {
+        pool.query('SELECT * FROM users WHERE id = $1', [req.params.id], (err, results) => {
             if (err) throw err;
 
             res.status(200).json({
@@ -59,7 +59,7 @@ exports.update = async (req, res) => {
 
     try {
         const sql = `
-            UPDATE "user"
+            UPDATE users
             SET name = $1, email = $2, phone = $3, birthDate = $4, billingAddress = $5
             WHERE id = $6
         `;
@@ -85,7 +85,7 @@ exports.updateAvatar = async (req, res) => {
     }
 
     try {
-        pool.query('UPDATE "user" SET avatar = $1 WHERE id = $2', [avatar, id], (err) => {
+        pool.query('UPDATE users SET avatar = $1 WHERE id = $2', [avatar, id], (err) => {
             if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
             res.status(200).json({ status: true, title: 'Avatar updated successfully' });
@@ -97,32 +97,37 @@ exports.updateAvatar = async (req, res) => {
 
 // Register
 exports.register = async (req, res) => {
-    const { username, password, name, email, phone, birthDate, billingAddress } = req.body;
+    const { username, password, fullName, email, phone} = req.body;
 
-    if (!username || !password || !name || !email || !phone || !birthDate || !billingAddress) {
+    if (!username || !password || !fullName || !email || !phone) {
         return res.status(400).json({ status: false, errorMessage: 'Missing required fields' });
     }
 
     try {
-        pool.query('SELECT * FROM "user" WHERE username = $1', [username], async (err, results) => {
+        pool.query('SELECT * FROM users WHERE username = $1', [username], async (err, results) => {
             if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
-            if (results.length > 0) {
+            if (results.rows.length > 0) {
                 return res.status(400).json({ status: false, errorMessage: 'Username already exists' });
             }
 
             const salt = bcrypt.genSaltSync(10);
             const hashedPassword = bcrypt.hashSync(password, salt);
 
-            const newUser = { username, password: hashedPassword, name, email, phone, birthDate, billingAddress };
+            const newUser = { username, password: hashedPassword, fullName, email, phone};
 
-            pool.query('INSERT INTO "user" SET $1', newUser, (err) => {
+            pool.query(
+            'INSERT INTO users (username, password, fullname, email, phone) VALUES ($1, $2, $3, $4, $5)',
+            [username, hashedPassword, fullName, email, phone],
+            (err) => {
                 if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
                 res.status(200).json({ status: true, title: 'Registered successfully' });
-            });
+            }
+            );
         });
     } catch (err) {
+        console.log(err)
         res.status(500).json({ status: 'fail', message: err.message });
     }
 };
@@ -136,7 +141,7 @@ exports.loginGoogle = async (req, res) => {
     }
 
     try {
-        pool.query('SELECT * FROM "user" WHERE username = $1', [username], (err, results) => {
+        pool.query('SELECT * FROM users WHERE username = $1', [username], (err, results) => {
             if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
             if (results.length === 0) {
@@ -144,7 +149,7 @@ exports.loginGoogle = async (req, res) => {
                 const hashedPassword = bcrypt.hashSync(password, salt);
                 const newUser = { username, password: hashedPassword, name, email, avatar };
 
-                pool.query('INSERT INTO "user" SET $1', newUser, (err, result) => {
+                pool.query('INSERT INTO users SET $1', newUser, (err, result) => {
                     if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
                     checkUserAndGenerateToken({ username, id: result.insertId }, res);
@@ -166,10 +171,10 @@ exports.getMe = async (req, res) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        pool.query('SELECT * FROM "user" WHERE username = $1', [decoded.user], (err, results) => {
+        pool.query('SELECT * FROM users WHERE username = $1', [decoded.user], (err, results) => {
             if (err) return res.status(500).json({ status: false, message: err.message });
 
-            if (results.length === 0) {
+            if (results.rows.length === 0) {
                 return res.status(404).json({ status: false, errorMessage: 'User not found' });
             }
 
@@ -186,7 +191,7 @@ exports.getMe = async (req, res) => {
 // Delete user
 exports.delete = async (req, res) => {
     try {
-        pool.query('DELETE FROM "user" WHERE id = $1', [req.params.id], (err) => {
+        pool.query('DELETE FROM users WHERE id = $1', [req.params.id], (err) => {
             if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
             res.status(200).json({ status: true, title: 'Deleted successfully' });
@@ -205,16 +210,16 @@ exports.login = async (req, res) => {
     }
 
     try {
-        pool.query('SELECT * FROM "user" WHERE username = $1', [username], async (err, results) => {
+        pool.query('SELECT * FROM users WHERE username = $1', [username], async (err, results) => {
             if (err) return res.status(500).json({ status: 'fail', message: err.message });
 
-            if (!results.length) return res.status(400).json({ status: false, errorMessage: 'No user found' });
+            if (!results.rows.length) return res.status(400).json({ status: false, errorMessage: 'No user found' });
 
-            const user = results[0];
+            const user = results.rows[0];
 
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) return res.status(401).json({ status: false, errorMessage: 'Invalid credentials' });
-
+            
             checkUserAndGenerateToken({ username: user.username, userId: user.id }, res);
         });
     } catch (err) {
@@ -231,7 +236,7 @@ exports.changePassword = async (req, res) => {
     }
 
     try {
-        pool.query('SELECT * FROM "user" WHERE id = $1', [id], async (err, results) => {
+        pool.query('SELECT * FROM users WHERE id = $1', [id], async (err, results) => {
             if (err) return res.status(500).json({ status: 'fail', message: err.message });
 
             if (!results.length) return res.status(400).json({ status: false, errorMessage: 'User not found' });
@@ -244,7 +249,7 @@ exports.changePassword = async (req, res) => {
             const salt = bcrypt.genSaltSync(10);
             const hashedNewPassword = bcrypt.hashSync(newPassword, salt);
 
-            pool.query('UPDATE "user" SET password = $1 WHERE id = $2', [hashedNewPassword, id], (err) => {
+            pool.query('UPDATE users SET password = $1 WHERE id = $2', [hashedNewPassword, id], (err) => {
                 if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
                 res.status(200).json({ status: true, title: 'Password changed successfully' });

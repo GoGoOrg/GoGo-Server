@@ -2,14 +2,13 @@
 -- Can be used as a domain or just added manually
 -- For simplicity, added manually to each table
 
-CREATE TABLE "user" (
+CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR NOT NULL,
     password VARCHAR NOT NULL,
-    firstName VARCHAR,
-    lastName VARCHAR,
+    fullName VARCHAR,
     email VARCHAR UNIQUE,
-    phoneNumber VARCHAR,
+    phone VARCHAR,
     avatar TEXT,
     about TEXT,
     role VARCHAR,
@@ -19,8 +18,8 @@ CREATE TABLE "user" (
     responsePercent FLOAT,
     agreePercent FLOAT,
     responseTime FLOAT,
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
@@ -29,9 +28,9 @@ CREATE TABLE Feedback (
     title VARCHAR,
     description TEXT,
     ischeck BOOLEAN,
-    userId INT REFERENCES "user"(id),
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    userId INT REFERENCES users(id),
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
@@ -39,8 +38,8 @@ CREATE TABLE FuelType (
     id SERIAL PRIMARY KEY,
     name VARCHAR,
     description TEXT,
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
@@ -49,16 +48,16 @@ CREATE TABLE TransmissionType (
     id SERIAL PRIMARY KEY,
     name VARCHAR,
     description TEXT,
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
 CREATE TABLE City (
     id SERIAL PRIMARY KEY,
     name VARCHAR,
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
@@ -68,8 +67,8 @@ CREATE TABLE Brand (
     id SERIAL PRIMARY KEY,
     name VARCHAR,
     description TEXT,
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
@@ -84,7 +83,7 @@ CREATE TABLE Car (
     seats INT,
     doors INT,
     price FLOAT,
-    ownerId INT REFERENCES "user"(id),
+    ownerId INT REFERENCES users(id),
     brandId INT REFERENCES Brand(id),
     cityId INT REFERENCES City(id),
     transmissionTypeId INT REFERENCES TransmissionType(id),
@@ -99,41 +98,41 @@ CREATE TABLE Car (
     pricePerDay INT,
     discountValue INT,
     discountType VARCHAR,
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
 
 CREATE TABLE Booking (
     id SERIAL PRIMARY KEY,
-    userId INT REFERENCES "user"(id),
+    userId INT REFERENCES users(id),
     carId INT REFERENCES Car(id),
     status VARCHAR,
     startDateTime TIMESTAMP,
     endDateTime TIMESTAMP,
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
 CREATE TABLE Review (
     id SERIAL PRIMARY KEY,
     content TEXT,
-    userId INT REFERENCES "user"(id),
+    userId INT REFERENCES users(id),
     carId INT REFERENCES Car(id),
     star INT,
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
 CREATE TABLE Favorite (
     id SERIAL PRIMARY KEY,
-    userId INT REFERENCES "user"(id),
+    userId INT REFERENCES users(id),
     carId INT REFERENCES Car(id),
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
@@ -142,12 +141,10 @@ CREATE TABLE Tag (
     id SERIAL PRIMARY KEY,
     name VARCHAR,
     description VARCHAR,
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
-
-
 
 
 CREATE TABLE CarImage (
@@ -155,8 +152,8 @@ CREATE TABLE CarImage (
     carId INT,
     imageUrl TEXT,
     isPrimary BOOLEAN,
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
@@ -165,8 +162,8 @@ CREATE TABLE Utility (
     name VARCHAR,
     description VARCHAR,
     imageUrl TEXT,
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
@@ -175,8 +172,8 @@ CREATE TABLE Car_Tag (
     id SERIAL PRIMARY KEY,
     carId INT REFERENCES Car(id),
     tagId INT REFERENCES Tag(id),
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
@@ -184,8 +181,8 @@ CREATE TABLE Car_Utility (
     id SERIAL PRIMARY KEY,
     carId INT REFERENCES Car(id),
     utilityId INT REFERENCES Utility(id),
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
@@ -198,8 +195,8 @@ CREATE TABLE Promotion (
     startDate DATE,
     endDate DATE,
     isActive BOOLEAN,
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
@@ -207,8 +204,8 @@ CREATE TABLE Car_Promotion (
     id SERIAL PRIMARY KEY,
     carId INT REFERENCES Car(id),
     promotionId INT REFERENCES Promotion(id),
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
 
@@ -217,7 +214,35 @@ CREATE TABLE CarAvailability (
     carId INT REFERENCES Car(id),
     startTime TIMESTAMP,
     endTime TIMESTAMP,
-    createdAt TIMESTAMP,
-    updatedAt TIMESTAMP,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
 );
+
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+   NEW.updatedat = CURRENT_TIMESTAMP;
+   RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DO $$
+DECLARE
+    tbl RECORD;
+BEGIN
+    FOR tbl IN
+        SELECT table_name
+        FROM information_schema.columns
+        WHERE column_name = 'updatedat'
+          AND table_schema = 'public'
+    LOOP
+        EXECUTE format('
+            CREATE TRIGGER set_updated_at_%I
+            BEFORE UPDATE ON %I
+            FOR EACH ROW
+            WHEN (OLD.updatedat IS DISTINCT FROM NEW.updatedat OR OLD IS DISTINCT FROM NEW)
+            EXECUTE FUNCTION update_updated_at_column();
+        ', tbl.table_name, tbl.table_name);
+    END LOOP;
+END $$;
