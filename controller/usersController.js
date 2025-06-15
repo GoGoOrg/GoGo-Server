@@ -4,13 +4,20 @@ const jwt = require('jsonwebtoken');
 
 // Helper function
 function checkUserAndGenerateToken(user, res) {
-    const token = jwt.sign({ user: user.username, id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.status(200).json({
-        status: true,
-        token,
-        user: {
-            id: user.id,
-            username: user.username
+    jwt.sign({ user: user.username, role: user.role, id: user.id }, 'shhhhh11111', { expiresIn: '2d' }, (err, token) => {
+        if (err) {
+            res.status(400).json({
+                status: false,
+                errorMessage: err,
+            });
+        } else {
+            res.status(200).json({
+                message: 'Login Successfully.',
+                id: user.id,
+                token: token,
+                role: user.role,
+                status: true
+            });
         }
     });
 }
@@ -180,7 +187,7 @@ exports.getMe = async (req, res) => {
 
             res.status(200).json({
                 status: 'success',
-                data: { user: results[0] }
+                data: { user: results.rows[0] }
             });
         });
     } catch (err) {
@@ -220,7 +227,7 @@ exports.login = async (req, res) => {
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) return res.status(401).json({ status: false, errorMessage: 'Invalid credentials' });
             
-            checkUserAndGenerateToken({ username: user.username, userId: user.id }, res);
+            checkUserAndGenerateToken({ username: user.username, userId: user.id, role:user.role }, res);
         });
     } catch (err) {
         res.status(500).json({ status: 'fail', message: err.message });

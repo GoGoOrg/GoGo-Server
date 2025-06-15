@@ -3,7 +3,7 @@ const cors = require('cors');
 
 const app = express();
 
-const userRoutes = require('./routes/userRoutes');
+const usersRoutes = require('./routes/usersRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
 const fuelTypeRoutes = require('./routes/fuelTypeRoutes');
 const brandRoutes = require('./routes/brandRoutes');
@@ -24,7 +24,7 @@ const favoriteRoutes = require('./routes/favoriteRoutes');
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
-app.use('/api/users', userRoutes);
+app.use('/api/users', usersRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/tags', tagRoutes);
 app.use('/api/reviews', reviewRoutes);
