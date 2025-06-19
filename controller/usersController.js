@@ -104,9 +104,9 @@ exports.updateAvatar = async (req, res) => {
 
 // Register
 exports.register = async (req, res) => {
-    const { username, password, fullName, email, phone} = req.body;
+    const { username, password, fullName, email, phone, role} = req.body;
 
-    if (!username || !password || !fullName || !email || !phone) {
+    if (!username || !password || !fullName || !email || !phone || !role) {
         return res.status(400).json({ status: false, errorMessage: 'Missing required fields' });
     }
 
@@ -124,8 +124,8 @@ exports.register = async (req, res) => {
             const newUser = { username, password: hashedPassword, fullName, email, phone};
 
             pool.query(
-            'INSERT INTO users (username, password, fullname, email, phone) VALUES ($1, $2, $3, $4, $5)',
-            [username, hashedPassword, fullName, email, phone],
+            'INSERT INTO users (username, password, fullname, email, phone, role) VALUES ($1, $2, $3, $4, $5, $6)',
+            [username, hashedPassword, fullName, email, phone, role],
             (err) => {
                 if (err) return res.status(500).json({ status: false, errorMessage: err.message });
 
