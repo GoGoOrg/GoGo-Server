@@ -4,12 +4,13 @@ const carControler = require("../controller/carController");
 
 const router = express.Router();
 
-// Feedback management
 router.route("/").get(carControler.getAll).post(carControler.create);
+
+router.route("/owner/:id").get(carControler.getAllByOwnerId);
+
 router
   .route("/:id")
   .get(carControler.getOne)
   .patch(carControler.update)
   .delete(carControler.delete);
-
 module.exports = router;

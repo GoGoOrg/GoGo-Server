@@ -15,6 +15,25 @@ exports.getAll = async (req, res) => {
   }
 };
 
+exports.getAllByOwnerId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `SELECT * FROM car c LEFT JOIN carimage ci ON c.id = ci.carid AND ci.isprimary = true
+      WHERE c.ownerid = $1 ORDER BY c.createdat DESC`,
+      [id]
+    );
+    res.status(200).json({
+      status: "success",
+      total: result.rowCount,
+      data: { cars: result.rows },
+    });
+  } catch (err) {
+    res.status(500).json({ status: "fail", message: err.message });
+  }
+};
+
 exports.getOne = async (req, res) => {
   try {
     const { id } = req.params;
@@ -43,6 +62,7 @@ exports.create = async (req, res) => {
     transmissiontypeid,
     fueltypeid,
     insurance,
+    images,
   } = req.body;
   if (
     !name ||
@@ -56,7 +76,8 @@ exports.create = async (req, res) => {
     !cityid ||
     !transmissiontypeid ||
     !fueltypeid ||
-    !insurance
+    !insurance ||
+    !images
   ) {
     return res
       .status(400)
@@ -64,42 +85,58 @@ exports.create = async (req, res) => {
   }
 
   try {
-    const query = `
-    INSERT INTO car (
-      name, licenseplate, description, color,
-      seats, price, ownerid, brandid, cityid,
-      transmissiontypeid, fueltypeid, insurance
-    ) VALUES (
-      $1, $2, $3, $4, $5,
-      $6, $7, $8, $9, $10,
-      $11, $12
-    ) RETURNING id;
-  `;
+    await pool.query("BEGIN");
 
-    const values = [
-      name,
-      licenseplate,
-      description,
-      color,
-      seats,
-      price,
-      ownerid,
-      brandid,
-      cityid,
-      transmissiontypeid,
-      fueltypeid,
-      insurance,
-    ];
+    // Insert into car
+    const insertCarResult = await pool.query(
+      `
+      INSERT INTO car (
+        name, licenseplate, description, color,
+        seats, price, ownerid, brandid, cityid,
+        transmissiontypeid, fueltypeid, insurance
+      ) VALUES (
+        $1, $2, $3, $4, $5,
+        $6, $7, $8, $9, $10,
+        $11, $12
+      )
+      RETURNING id
+    `,
+      [
+        name,
+        licenseplate,
+        description,
+        color,
+        seats,
+        price,
+        ownerid,
+        brandid,
+        cityid,
+        transmissiontypeid,
+        fueltypeid,
+        insurance,
+      ]
+    );
 
-    const result = await pool.query(query, values);
+    const carId = insertCarResult.rows[0].id;
+
+    // Insert multiple car images
+    const imageInsertQuery = `
+      INSERT INTO carimage (carid, imageurl, isprimary)
+      VALUES ${images
+        .map((_, i) => `($1, $${i * 2 + 2}, $${i * 2 + 3})`)
+        .join(",\n")}
+    `;
+
+    const imageValues = images.flatMap((img, i) => [img, i === 0]); // first image is primary
+    await pool.query(imageInsertQuery, [carId, ...imageValues]);
+    await pool.query("COMMIT");
 
     res.status(201).json({
       status: true,
       title: "Created successfully.",
-      id: result.rows[0].id,
     });
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res.status(500).json({ status: "fail", message: err.message });
   }
 };
