@@ -3,7 +3,21 @@ const pool = require("../db");
 exports.getAll = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM car ORDER BY createdat DESC"
+      `SELECT c.*, ci.imageurl, ft.name AS fueltype, tt.name as transmissiontype, b.name AS brand, u.fullname AS ownername, ct.name AS city
+      FROM car c 
+      LEFT JOIN carimage ci 
+      ON c.id = ci.carid AND ci.isprimary = true 
+      LEFT JOIN fueltype ft
+      ON c.fueltypeid = ft.id
+      LEFT JOIN transmissiontype tt
+      ON c.transmissiontypeid = tt.id
+      LEFT JOIN brand b
+      ON c.brandid = b.id
+      LEFT JOIN users u
+      ON c.ownerid = u.id
+      LEFT JOIN city ct
+      ON c.cityid = ct.id
+      ORDER BY c.createdat DESC`
     );
     res.status(200).json({
       status: "success",
@@ -20,8 +34,20 @@ exports.getAllByOwnerId = async (req, res) => {
     const { id } = req.params;
 
     const result = await pool.query(
-      `SELECT * FROM car c LEFT JOIN carimage ci ON c.id = ci.carid AND ci.isprimary = true
-      WHERE c.ownerid = $1 ORDER BY c.createdat DESC`,
+      `SELECT c.*, ci.imageurl, ft.name AS fueltype, tt.name as transmissiontype, b.name AS brand, ct.name as city
+      FROM car c 
+      LEFT JOIN carimage ci 
+      ON c.id = ci.carid AND ci.isprimary = true 
+      LEFT JOIN fueltype ft
+      ON c.fueltypeid = ft.id
+      LEFT JOIN transmissiontype tt
+      ON c.transmissiontypeid = tt.id
+      LEFT JOIN brand b
+      ON c.brandid = b.id
+      LEFT JOIN city ct
+      ON c.cityid = ct.id
+      WHERE c.ownerid = $1
+      ORDER BY c.createdat DESC`,
       [id]
     );
     res.status(200).json({
@@ -37,7 +63,24 @@ exports.getAllByOwnerId = async (req, res) => {
 exports.getOne = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query("SELECT * FROM car WHERE id = $1", [id]);
+    const result = await pool.query(`
+      SELECT c.*, ci.imageurl, ft.name AS fueltype, tt.name as transmissiontype, b.name AS brand, u.fullname AS ownername, ct.name AS city
+      FROM car c 
+      LEFT JOIN carimage ci 
+      ON c.id = ci.carid AND ci.isprimary = true 
+      LEFT JOIN fueltype ft
+      ON c.fueltypeid = ft.id
+      LEFT JOIN transmissiontype tt
+      ON c.transmissiontypeid = tt.id
+      LEFT JOIN brand b
+      ON c.brandid = b.id
+      LEFT JOIN users u
+      ON c.ownerid = u.id
+      LEFT JOIN city ct
+      ON c.cityid = ct.id
+      WHERE c.id = $1
+      ORDER BY c.createdat DESC
+      `, [id]);
     res.status(200).json({
       status: "success",
       total: result.rowCount,
