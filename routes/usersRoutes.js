@@ -1,20 +1,21 @@
 const express = require('express');
 const usersController = require('../controller/usersController');
-// const authMiddleware = require('../middleware/auth'); // optional suggestion
+const checkToken = require('../middleware/checkToken'); // import your middleware
 
 const router = express.Router();
 
-// Auth & account
+// Public routes
 router.post('/register', usersController.register);
 router.post('/login', usersController.login);
 router.post('/google', usersController.loginGoogle);
-router.get('/me', usersController.getMe); // optionally add auth middleware
 
-// Password & avatar
+// Protect everything below
+router.use(checkToken);
+
+// Protected routes
+router.get('/me', usersController.getMe);
 router.patch('/password', usersController.changePassword);
 router.patch('/avatar/:id', usersController.updateAvatar);
-
-// User management
 router.get('/', usersController.getAll);
 router
   .route('/:id')

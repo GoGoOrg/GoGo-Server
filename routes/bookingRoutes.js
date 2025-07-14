@@ -1,13 +1,12 @@
-const express = require('express');
-const bookingControler = require('../controller/bookingController');
-// const authMiddleware = require('../middleware/auth'); // optional suggestion
+const express = require("express");
+const bookingControler = require("../controller/bookingController");
 
 const router = express.Router();
 
 // Feedback management
-router.get('/', bookingControler.getAll);
+router.get("/", bookingControler.getAll);
 router
-  .route('/:id')
+  .route("/:id")
   .get(bookingControler.getOne)
   .patch(bookingControler.update)
   .delete(bookingControler.delete);

@@ -1,11 +1,11 @@
 const express = require('express');
 const brandController = require('../controller/brandController');
-// const authMiddleware = require('../middleware/auth'); // optional suggestion
+const { cache } = require('../middleware/cacheRedis');
 
 const router = express.Router();
 
 // Feedback management
-router.get('/', brandController.getAll);
+router.get('/', cache('brands', 300), brandController.getAll);
 router
   .route('/:id')
   .get(brandController.getOne)

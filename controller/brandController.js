@@ -9,7 +9,7 @@ exports.getAll = async (req, res) => {
       data: { brands: result.rows },
     });
   } catch (err) {
-    res.status(500).json({ status: 'fail', message: err.message });
+    next(err);
   }
 };
 
@@ -23,7 +23,7 @@ exports.getOne = async (req, res) => {
       data: { brand: result.rows },
     });
   } catch (err) {
-    res.status(500).json({ status: 'fail', message: err.message });
+    next(err);
   }
 };
 
@@ -45,7 +45,7 @@ exports.create = async (req, res) => {
       id: result.rows[0].id,
     });
   } catch (err) {
-    res.status(500).json({ status: 'fail', message: err.message });
+    next(err);
   }
 };
 
@@ -65,7 +65,7 @@ exports.update = async (req, res) => {
 
     res.status(200).json({ status: true, name: 'Updated successfully.' });
   } catch (err) {
-    res.status(500).json({ status: 'fail', message: err.message });
+    next(err);
   }
 };
 
@@ -75,6 +75,6 @@ exports.delete = async (req, res) => {
     await pool.query('DELETE FROM brand WHERE id = $1', [id]);
     res.status(200).json({ status: true, name: 'Deleted successfully.' });
   } catch (err) {
-    res.status(500).json({ status: 'fail', message: err.message });
+    next(err);
   }
 };

@@ -60,10 +60,40 @@ exports.getAllByOwnerId = async (req, res) => {
   }
 };
 
+exports.getAllByBrandId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `SELECT c.*, ci.imageurl, ft.name AS fueltype, tt.name as transmissiontype, ct.name as city
+      FROM car c 
+      LEFT JOIN carimage ci 
+      ON c.id = ci.carid AND ci.isprimary = true 
+      LEFT JOIN fueltype ft
+      ON c.fueltypeid = ft.id
+      LEFT JOIN transmissiontype tt
+      ON c.transmissiontypeid = tt.id
+      LEFT JOIN city ct
+      ON c.cityid = ct.id
+      WHERE c.brandid = $1
+      ORDER BY c.createdat DESC`,
+      [id]
+    );
+    res.status(200).json({
+      status: "success",
+      total: result.rowCount,
+      data: { cars: result.rows },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.getOne = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       SELECT c.*, ci.imageurl, ft.name AS fueltype, tt.name as transmissiontype, b.name AS brand, u.fullname AS ownername, ct.name AS city
       FROM car c 
       LEFT JOIN carimage ci 
@@ -80,14 +110,16 @@ exports.getOne = async (req, res) => {
       ON c.cityid = ct.id
       WHERE c.id = $1
       ORDER BY c.createdat DESC
-      `, [id]);
+      `,
+      [id]
+    );
     res.status(200).json({
       status: "success",
       total: result.rowCount,
       data: { car: result.rows },
     });
   } catch (err) {
-    res.status(500).json({ status: "fail", message: err.message });
+    next(err);
   }
 };
 
@@ -122,9 +154,7 @@ exports.create = async (req, res) => {
     !insurance ||
     !images
   ) {
-    return res
-      .status(400)
-      .json({ status: false, errorMessage: "Missing required fields" });
+    next(err);
   }
 
   try {
@@ -179,8 +209,7 @@ exports.create = async (req, res) => {
       title: "Created successfully.",
     });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ status: "fail", message: err.message });
+    next(err);
   }
 };
 
@@ -203,7 +232,7 @@ exports.update = async (req, res) => {
 
     res.status(200).json({ status: true, name: "Updated successfully." });
   } catch (err) {
-    res.status(500).json({ status: "fail", message: err.message });
+    next(err);
   }
 };
 
@@ -213,6 +242,6 @@ exports.delete = async (req, res) => {
     await pool.query("DELETE FROM car WHERE id = $1", [id]);
     res.status(200).json({ status: true, name: "Deleted successfully." });
   } catch (err) {
-    res.status(500).json({ status: "fail", message: err.message });
+    next(err);
   }
 };
