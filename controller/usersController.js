@@ -6,30 +6,30 @@ const jwt = require("jsonwebtoken");
 function checkUserAndGenerateToken(user, res) {
   jwt.sign(
     { user: user.username, role: user.role, id: user.id },
-    "shhhhh11111",
+    process.env.JWT_SECRET,
     { expiresIn: "2d" },
     (err, token) => {
-      if (err) {
+      if (err || !token) {
         res.status(400).json({
           status: false,
           errorMessage: err,
         });
-      } else {
-        res.cookie("Token", token, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "strict", 
-          maxAge: 2 * 24 * 60 * 60 * 1000, 
-        });
-
-        res.status(200).json({
-          message: "Login Successfully.",
-          id: user.id,
-          token: token,
-          role: user.role,
-          status: true,
-        });
       }
+
+      res.cookie("Token", token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 2 * 24 * 60 * 60 * 1000,
+      });
+
+      res.status(200).json({
+        message: "Login Successfully.",
+        id: user.id,
+        token: token,
+        role: user.role,
+        status: true,
+      });
     }
   );
 }
@@ -244,7 +244,7 @@ exports.loginGoogle = async (req, res) => {
 
 // Get current user
 exports.getMe = async (req, res) => {
-  const token = req.header("Token");
+  const token = req.cookies["Token"];
 
   if (!token)
     return res
@@ -325,12 +325,26 @@ exports.login = async (req, res) => {
             .json({ status: false, errorMessage: "Invalid credentials" });
 
         checkUserAndGenerateToken(
-          { username: user.username, userId: user.id, role: user.role },
+          { username: user.username, id: user.id, role: user.role },
           res
         );
       }
     );
   } catch (err) {
+    res.status(500).json({ status: "fail", message: err.message });
+  }
+};
+
+// Logout
+exports.logout = async (req, res) => {
+  try {
+    res.clearCookie("Token", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+    });
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
     res.status(500).json({ status: "fail", message: err.message });
   }
 };

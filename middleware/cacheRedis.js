@@ -7,11 +7,8 @@ function cache(keyPrefix, ttlSeconds = 300) {
     try {
       const cachedData = await redisClient.get(key);
       if (cachedData) {
-        console.log("Cache hit:", key);
         return res.json(JSON.parse(cachedData));
       }
-
-      console.log("Cache miss:", key);
 
       const originalJson = res.json.bind(res);
       res.json = async (data) => {
