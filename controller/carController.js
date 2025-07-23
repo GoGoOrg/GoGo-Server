@@ -1,4 +1,5 @@
 const pool = require("../db");
+const jwt = require("jsonwebtoken");
 
 exports.getAll = async (req, res) => {
   try {
@@ -18,6 +19,43 @@ exports.getAll = async (req, res) => {
       LEFT JOIN city ct
       ON c.cityid = ct.id
       ORDER BY c.createdat DESC`
+    );
+    res.status(200).json({
+      status: "success",
+      total: result.rowCount,
+      data: { cars: result.rows },
+    });
+  } catch (err) {
+    res.status(500).json({ status: "fail", message: err.message });
+  }
+};
+
+exports.getMyCar = async (req, res) => {
+  const token = req.cookies["Token"];
+
+  if (!token)
+    return res
+      .status(400)
+      .json({ status: false, errorMessage: "Token missing" });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const result = await pool.query(
+      `SELECT c.*, ci.imageurl, ft.name AS fueltype, tt.name as transmissiontype, b.name AS brand, ct.name as city
+      FROM car c 
+      LEFT JOIN carimage ci 
+      ON c.id = ci.carid AND ci.isprimary = true 
+      LEFT JOIN fueltype ft
+      ON c.fueltypeid = ft.id
+      LEFT JOIN transmissiontype tt
+      ON c.transmissiontypeid = tt.id
+      LEFT JOIN brand b
+      ON c.brandid = b.id
+      LEFT JOIN city ct
+      ON c.cityid = ct.id
+      WHERE c.ownerid = $1
+      ORDER BY c.createdat DESC`,
+      [decoded.id]
     );
     res.status(200).json({
       status: "success",
@@ -123,15 +161,15 @@ exports.getOne = async (req, res) => {
   }
 };
 
-exports.create = async (req, res) => {
+exports.create = async (req, res, next) => {
   const {
     name,
     licenseplate,
     description,
+    regulation,
     color,
     seats,
     price,
-    ownerid,
     brandid,
     cityid,
     transmissiontypeid,
@@ -141,7 +179,6 @@ exports.create = async (req, res) => {
   } = req.body;
   if (
     !name ||
-    !ownerid ||
     !licenseplate ||
     !description ||
     !color ||
@@ -156,21 +193,29 @@ exports.create = async (req, res) => {
   ) {
     next(err);
   }
+  const token = req.cookies["Token"];
+
+  if (!token)
+    return res
+      .status(400)
+      .json({ status: false, errorMessage: "Token missing" });
 
   try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
     await pool.query("BEGIN");
 
     // Insert into car
     const insertCarResult = await pool.query(
       `
       INSERT INTO car (
-        name, licenseplate, description, color,
+        name, licenseplate, description, regulation, color,
         seats, price, ownerid, brandid, cityid,
         transmissiontypeid, fueltypeid, insurance
       ) VALUES (
-        $1, $2, $3, $4, $5,
+        $1, $2, $3, $4, $5, 
         $6, $7, $8, $9, $10,
-        $11, $12
+        $11, $12, $13
       )
       RETURNING id
     `,
@@ -178,15 +223,16 @@ exports.create = async (req, res) => {
         name,
         licenseplate,
         description,
+        regulation,
         color,
         seats,
         price,
-        ownerid,
+        decoded.id,
         brandid,
         cityid,
         transmissiontypeid,
         fueltypeid,
-        insurance,
+        insurance
       ]
     );
 
