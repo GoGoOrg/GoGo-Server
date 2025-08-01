@@ -1,5 +1,6 @@
 const pool = require("../db");
 const jwt = require("jsonwebtoken");
+const logger = require("../utils/logger");
 
 exports.getAll = async (req, res) => {
   try {
@@ -132,22 +133,35 @@ exports.getOne = async (req, res) => {
     const { id } = req.params;
     const result = await pool.query(
       `
-      SELECT c.*, ci.imageurl, ft.name AS fueltype, tt.name as transmissiontype, b.name AS brand, u.fullname AS ownername, ct.name AS city
-      FROM car c 
+      SELECT 
+        c.*, 
+        ARRAY_AGG(ci.imageurl) AS images, 
+        ft.name AS fueltype, 
+        tt.name AS transmissiontype, 
+        b.name AS brand, 
+        u.fullname AS ownername, 
+        ct.name AS city
+      FROM 
+        car c 
       LEFT JOIN carimage ci 
-      ON c.id = ci.carid AND ci.isprimary = true 
+        ON c.id = ci.carid
       LEFT JOIN fueltype ft
-      ON c.fueltypeid = ft.id
+        ON c.fueltypeid = ft.id
       LEFT JOIN transmissiontype tt
-      ON c.transmissiontypeid = tt.id
+        ON c.transmissiontypeid = tt.id
       LEFT JOIN brand b
-      ON c.brandid = b.id
+        ON c.brandid = b.id
       LEFT JOIN users u
-      ON c.ownerid = u.id
+        ON c.ownerid = u.id
       LEFT JOIN city ct
-      ON c.cityid = ct.id
-      WHERE c.id = $1
-      ORDER BY c.createdat DESC
+        ON c.cityid = ct.id
+      WHERE 
+        c.id = $1
+      GROUP BY 
+        c.id, ft.name, tt.name, b.name, u.fullname, ct.name
+      ORDER BY 
+        c.createdat DESC;
+
       `,
       [id]
     );
@@ -232,7 +246,7 @@ exports.create = async (req, res, next) => {
         cityid,
         transmissiontypeid,
         fueltypeid,
-        insurance
+        insurance,
       ]
     );
 
@@ -249,6 +263,8 @@ exports.create = async (req, res, next) => {
     const imageValues = images.flatMap((img, i) => [img, i === 0]); // first image is primary
     await pool.query(imageInsertQuery, [carId, ...imageValues]);
     await pool.query("COMMIT");
+
+    logger.info("Car created", { carId: result.id, userId: req.user.id });
 
     res.status(201).json({
       status: true,

@@ -4,7 +4,9 @@ const cookieParser = require("cookie-parser");
 
 const app = express();
 
-const apiLimiter = require("./middleware/rateLimiter"); // Path to your limiter
+const apiLimiter = require("./middleware/rateLimiter"); 
+const logger = require('./utils/logger');
+
 const errorHandler = require("./middleware/errorHandler");
 
 const usersRoutes = require("./routes/usersRoutes");
@@ -56,5 +58,9 @@ app.use("/api/car-image", carImageRoutes);
 app.use("/api/favorite", favoriteRoutes);
 
 app.use(errorHandler);
+app.get('/api/health', (req, res) => {
+    logger.info('Health check requested');
+    res.json({ status: 'ok' });
+});
 
 module.exports = app;

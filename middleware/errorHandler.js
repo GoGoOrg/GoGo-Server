@@ -1,13 +1,15 @@
+// errorHandler.js
+const logger = require("../utils/logger");
+
 function errorHandler(err, req, res, next) {
-    console.error(err.stack);
+  logger.error("Unhandled error", {
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+  });
 
-    const statusCode = err.statusCode || 500;
-
-    res.status(statusCode).json({
-        status: 'error',
-        statusCode: statusCode,
-        message: err.message || 'Internal Server Error',
-    });
+  res.status(500).json({ message: "Internal server error" });
 }
 
 module.exports = errorHandler;
