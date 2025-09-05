@@ -5,7 +5,7 @@ const logger = require("../utils/logger");
 exports.getAll = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT c.*, ci.imageurl, ft.name AS fueltype, tt.name as transmissiontype, b.name AS brand, u.fullname AS ownername, ct.name AS city
+      `SELECT c.*, ci.imageurl, ft.name AS fueltype, tt.name as transmissiontype, b.name AS brand, u.fullname AS ownername, u.avatar AS owneravatar, ct.name AS city
       FROM car c 
       LEFT JOIN carimage ci 
       ON c.id = ci.carid AND ci.isprimary = true 
@@ -155,7 +155,7 @@ exports.searchByName = async (req, res) => {
   }
 };
 
-exports.getOne = async (req, res) => {
+exports.getOne = async (req, res, next) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
@@ -167,6 +167,7 @@ exports.getOne = async (req, res) => {
         tt.name AS transmissiontype, 
         b.name AS brand, 
         u.fullname AS ownername, 
+        u.avatar AS owneravatar,
         ct.name AS city
       FROM 
         car c 
@@ -185,7 +186,7 @@ exports.getOne = async (req, res) => {
       WHERE 
         c.id = $1
       GROUP BY 
-        c.id, ft.name, tt.name, b.name, u.fullname, ct.name
+        c.id, ft.name, tt.name, b.name, u.fullname, ct.name, u.avatar
       ORDER BY 
         c.createdat DESC;
 

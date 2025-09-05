@@ -7,7 +7,7 @@ const router = express.Router();
 
 // Public routes
 router.route("/").get(cache("cars", 300), carControler.getAll);
-router.route("/:id").get(cache("cars", 300), carControler.getOne);
+router.route("/:id").get(carControler.getOne);
 router
   .route("/brand/:id")
   .get(cache("carsByBrand", 300), carControler.getAllByBrandId);
