@@ -362,3 +362,41 @@ INSERT INTO city (name) VALUES
 ('Vĩnh Long'),
 ('Vĩnh Phúc'),
 ('Yên Bái');
+
+CREATE OR REPLACE FUNCTION update_car_avgrating()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE car
+  SET avgrating = COALESCE((
+      SELECT AVG(star)::NUMERIC(3,2)
+      FROM review
+      WHERE carid = NEW.carid
+    ), 0),
+    reviewcount = COALESCE((
+      SELECT COUNT(*)
+      FROM reviews
+      WHERE carid = NEW.carid
+    ), 0)
+  WHERE id = NEW.carid;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- When a review is inserted
+CREATE TRIGGER trg_review_insert
+AFTER INSERT ON review
+FOR EACH ROW
+EXECUTE FUNCTION update_car_avgrating();
+
+-- When a review is updated
+CREATE TRIGGER trg_review_update
+AFTER UPDATE ON review
+FOR EACH ROW
+EXECUTE FUNCTION update_car_avgrating();
+
+-- When a review is deleted
+CREATE TRIGGER trg_review_delete
+AFTER DELETE ON review
+FOR EACH ROW
+EXECUTE FUNCTION update_car_avgrating();

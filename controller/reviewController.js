@@ -1,6 +1,6 @@
 const pool = require("../db");
 
-exports.getAll = async (req, res) => {
+exports.getAll = async (req, res, next) => {
   try {
     const result = await pool.query(
       "SELECT * FROM review ORDER BY createdat DESC"
@@ -15,13 +15,15 @@ exports.getAll = async (req, res) => {
   }
 };
 
-exports.getAllByCarId = async (req, res) => {
+exports.getAllByCarId = async (req, res, next) => {
   try {
     const { carId } = req.params;
 
     const result = await pool.query(
-      `SELECT * FROM review 
-      WHERE carid = $1
+      `SELECT r.*, u.fullname, u.avatar FROM review r
+      LEFT JOIN users u
+      ON r.userid = u.id
+      WHERE r.carid = $1
       ORDER BY createdat DESC`,
       [carId]
     );
@@ -35,7 +37,7 @@ exports.getAllByCarId = async (req, res) => {
   }
 };
 
-exports.getAllByCarIdAndUserId = async (req, res) => {
+exports.getAllByCarIdAndUserId = async (req, res, next) => {
   try {
     const { carId, userId } = req.params;
 
@@ -55,7 +57,7 @@ exports.getAllByCarIdAndUserId = async (req, res) => {
   }
 };
 
-exports.getOne = async (req, res) => {
+exports.getOne = async (req, res, next) => {
   try {
     const { id } = req.params;
     const result = await pool.query("SELECT * FROM review WHERE id = $1", [id]);
@@ -69,7 +71,7 @@ exports.getOne = async (req, res) => {
   }
 };
 
-exports.create = async (req, res) => {
+exports.create = async (req, res, next) => {
   const { content, userId, carId, star } = req.body;
   if (!content || !userId || !carId || !star) {
     return res.status(400).json({
@@ -94,7 +96,7 @@ exports.create = async (req, res) => {
   }
 };
 
-exports.update = async (req, res) => {
+exports.update = async (req, res, next) => {
   const { content, star } = req.body;
   const { id } = req.params;
 
@@ -117,7 +119,7 @@ exports.update = async (req, res) => {
   }
 };
 
-exports.delete = async (req, res) => {
+exports.delete = async (req, res, next) => {
   try {
     const { id } = req.params;
     await pool.query("DELETE FROM review WHERE id = $1", [id]);

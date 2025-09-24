@@ -37,13 +37,14 @@ function checkUserAndGenerateToken(user, res) {
 // Get all users
 exports.getAll = async (req, res) => {
   try {
-    pool.query("SELECT * FROM users", (err, results) => {
+    pool.query(`SELECT id, username, fullname, email, phone, avatar, about, role, birthday, totalCars, totalHired, responsePercent, agreePercent, responseTime, createdat, updatedat 
+      FROM users`, (err, results) => {
       if (err) throw err;
 
       res.status(200).json({
         status: "success",
         total: results.length,
-        data: { users: results },
+        data: { users: results.rows },
       });
     });
   } catch (err) {
@@ -62,7 +63,7 @@ exports.getOne = async (req, res) => {
 
         res.status(200).json({
           status: "success",
-          data: { user: results[0] || null },
+          data: { user: results.rows[0] || null },
         });
       }
     );
