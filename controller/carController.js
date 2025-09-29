@@ -155,6 +155,34 @@ exports.searchByName = async (req, res) => {
   }
 };
 
+
+exports.searchByCityName = async (req, res) => {
+  try {
+    const { name } = req.params;
+    const result = await pool.query(
+      `SELECT c.*, ci.imageurl, ft.name AS fueltype, tt.name as transmissiontype, ct.name as city
+      FROM car c 
+      LEFT JOIN carimage ci 
+      ON c.id = ci.carid AND ci.isprimary = true 
+      LEFT JOIN fueltype ft
+      ON c.fueltypeid = ft.id
+      LEFT JOIN transmissiontype tt
+      ON c.transmissiontypeid = tt.id
+      LEFT JOIN city ct
+      ON c.cityid = ct.id
+      WHERE ct.name ILIKE $1
+      ORDER BY c.createdat DESC`, [`%${name}%`])
+    res.status(200).json({
+      status: "success",
+      total: result.rowCount,
+      data: { cars: result.rows },
+    });
+  }
+  catch (err) {
+    next(err);
+  }
+};
+
 exports.getOne = async (req, res, next) => {
   try {
     const { id } = req.params;

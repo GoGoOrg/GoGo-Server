@@ -12,7 +12,7 @@ router
   .route("/brand/:id")
   .get(cache("carsByBrand", 300), carControler.getAllByBrandId);
 router.route("/search/:name").get(carControler.searchByName);
-
+router.route("/city/:name").get(carControler.searchByCityName);
 // Protect everything below
 router.use(checkToken);
 
