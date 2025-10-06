@@ -34,12 +34,10 @@ exports.getOne = async (req, res) => {
 exports.create = async (req, res) => {
   const { carId, utilityId } = req.body;
   if (!carId || !utilityId) {
-    return res
-      .status(400)
-      .json({
-        status: false,
-        errorMessage: "Missing one of the fields required.",
-      });
+    return res.status(400).json({
+      status: false,
+      errorMessage: "Missing one of the fields required.",
+    });
   }
 
   try {
@@ -58,30 +56,31 @@ exports.create = async (req, res) => {
   }
 };
 
-exports.update = async (req, res) => {
-  const { carId, utilityId } = req.body;
-  const { id } = req.params;
+// PATCH /api/car-utility/:carId
+exports.update = async (req, res, next) => {
+  const { id } = req.params; // ✅ match your route
+  const utilityIds = req.body;
 
-  if (!carId || !utilityId) {
-    return res
-      .status(400)
-      .json({
-        status: false,
-        errorMessage: "Missing one of the fields required.",
-      });
+  if (!Array.isArray(utilityIds)) {
+    return res.status(400).json({ status: false, errorMessage: "Expected array of utilityIds." });
   }
 
   try {
-    await pool.query(
-      "UPDATE carutility SET carid = $1, utilityid = $2 WHERE id = $3",
-      [carId, utilityId, id]
-    );
+    await pool.query("DELETE FROM car_utility WHERE carid = $1", [id]);
 
-    res.status(200).json({ status: true, name: "Updated successfully." });
+    if (utilityIds.length > 0) {
+      const values = utilityIds.map((_, i) => `($1, $${i + 2})`).join(", ");
+      const query = `INSERT INTO car_utility (carid, utilityid) VALUES ${values}`;
+      await pool.query(query, [id, ...utilityIds]);
+    }
+
+    res.status(200).json({ status: true, message: "Utilities updated successfully." });
   } catch (err) {
     next(err);
   }
 };
+
+
 
 exports.delete = async (req, res) => {
   try {

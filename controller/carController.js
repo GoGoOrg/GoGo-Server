@@ -190,7 +190,15 @@ exports.getOne = async (req, res, next) => {
       `
       SELECT 
         c.*, 
-        ARRAY_AGG(ci.imageurl) AS images, 
+        COALESCE(ARRAY_AGG(DISTINCT ci.imageurl) FILTER (WHERE ci.imageurl IS NOT NULL), '{}') AS images,
+        COALESCE(
+          JSON_AGG(DISTINCT JSONB_BUILD_OBJECT(
+            'id', util.id,
+            'name', util.name,
+            'icon', util.icon
+          )) FILTER (WHERE util.name IS NOT NULL),
+          '[]'
+        ) AS utilities,
         ft.name AS fueltype, 
         tt.name AS transmissiontype, 
         b.name AS brand, 
@@ -211,13 +219,16 @@ exports.getOne = async (req, res, next) => {
         ON c.ownerid = u.id
       LEFT JOIN city ct
         ON c.cityid = ct.id
+      LEFT JOIN car_utility cutil
+        ON c.id = cutil.carid
+      LEFT JOIN utility util
+        ON cutil.utilityid = util.id
       WHERE 
         c.id = $1
       GROUP BY 
         c.id, ft.name, tt.name, b.name, u.fullname, ct.name, u.avatar
       ORDER BY 
         c.createdat DESC;
-
       `,
       [id]
     );
