@@ -1,10 +1,12 @@
-const pool = require('../db');
+const pool = require("../db");
 
 exports.getAll = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM car_tag ORDER BY createdat DESC');
+    const result = await pool.query(
+      "SELECT * FROM car_tag ORDER BY createdat DESC"
+    );
     res.status(200).json({
-      status: 'success',
+      status: "success",
       total: result.rowCount,
       data: { cartags: result.rows },
     });
@@ -16,9 +18,11 @@ exports.getAll = async (req, res) => {
 exports.getOne = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('SELECT * FROM car_tag WHERE id = $1', [id]);
+    const result = await pool.query("SELECT * FROM car_tag WHERE id = $1", [
+      id,
+    ]);
     res.status(200).json({
-      status: 'success',
+      status: "success",
       total: result.rowCount,
       data: { cartag: result.rows },
     });
@@ -28,20 +32,25 @@ exports.getOne = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  const {carId, tagId} = req.body;
-  if (!carId || !tagId) {
-    return res.status(400).json({ status: false, errorMessage: 'Missing one of the fields required.' });
+  const { carid, tagid } = req.body;
+  if (!carid || !tagid) {
+    return res
+      .status(400)
+      .json({
+        status: false,
+        errorMessage: "Missing one of the fields required.",
+      });
   }
 
   try {
     const result = await pool.query(
-      'INSERT INTO cartag (carId, tagId) VALUES ($1, $2) RETURNING id',
-      [carId, tagId]
+      "INSERT INTO cartag (carid, tagid) VALUES ($1, $2) RETURNING id",
+      [carid, tagid]
     );
 
     res.status(201).json({
       status: true,
-      title: 'Created successfully.',
+      title: "Created successfully.",
       id: result.rows[0].id,
     });
   } catch (err) {
@@ -50,20 +59,26 @@ exports.create = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
-  const { carId, tagId } = req.body;
+  const { carid, tagid } = req.body;
   const { id } = req.params;
 
-  if (!carId || !tagId) {
-    return res.status(400).json({ status: false, errorMessage: 'Missing one of the fields required.' });
+  if (!carid || !tagid) {
+    return res
+      .status(400)
+      .json({
+        status: false,
+        errorMessage: "Missing one of the fields required.",
+      });
   }
 
   try {
-    await pool.query(
-      'UPDATE cartag SET carid = $1, tagid = $2 WHERE id = $3',
-      [ carId, tagId, id]
-    );
+    await pool.query("UPDATE cartag SET carid = $1, tagid = $2 WHERE id = $3", [
+      carid,
+      tagid,
+      id,
+    ]);
 
-    res.status(200).json({ status: true, name: 'Updated successfully.' });
+    res.status(200).json({ status: true, name: "Updated successfully." });
   } catch (err) {
     next(err);
   }
@@ -72,8 +87,8 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query('DELETE FROM car_tag WHERE id = $1', [id]);
-    res.status(200).json({ status: true, name: 'Deleted successfully.' });
+    await pool.query("DELETE FROM car_tag WHERE id = $1", [id]);
+    res.status(200).json({ status: true, name: "Deleted successfully." });
   } catch (err) {
     next(err);
   }

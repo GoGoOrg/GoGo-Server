@@ -1,10 +1,12 @@
-const pool = require('../db');
+const pool = require("../db");
 
-exports.getAll = async (req, res) => {
+exports.getAll = async (req, res, next) => {
   try {
-    const result = await pool.query('SELECT * FROM carrequest ORDER BY createdat DESC');
+    const result = await pool.query(
+      "SELECT * FROM carrequest ORDER BY createdat DESC"
+    );
     res.status(200).json({
-      status: 'success',
+      status: "success",
       total: result.rowCount,
       data: { carrequests: result.rows },
     });
@@ -13,12 +15,32 @@ exports.getAll = async (req, res) => {
   }
 };
 
-exports.getAllByCarId = async (req, res) => {
+exports.getAllByCaridAndUserid = async (req, res, next) => {
+  try {
+    const { carid, userid } = req.params;
+    const result = await pool.query(
+      "SELECT * FROM carrequest WHERE carid=$1 AND userid = $2 ORDER BY createdat DESC",
+      [carid, userid]
+    );
+    res.status(200).json({
+      status: "success",
+      total: result.rowCount,
+      data: { carrequests: result.rows },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getAllByCarid = async (req, res, next) => {
   try {
     const { carid } = req.params;
-    const result = await pool.query('SELECT * FROM carrequest WHERE carid=$1 ORDER BY createdat DESC', [carid]);
+    const result = await pool.query(
+      "SELECT * FROM carrequest WHERE carid=$1 ORDER BY createdat DESC",
+      [carid]
+    );
     res.status(200).json({
-      status: 'success',
+      status: "success",
       total: result.rowCount,
       data: { carrequests: result.rows },
     });
@@ -27,12 +49,15 @@ exports.getAllByCarId = async (req, res) => {
   }
 };
 
-exports.getAllByUserId = async (req, res) => {
+exports.getAllByUserid = async (req, res, next) => {
   try {
     const { userid } = req.params;
-    const result = await pool.query('SELECT * FROM carrequest WHERE userid=$1 ORDER BY createdat DESC', [userid]);
+    const result = await pool.query(
+      "SELECT * FROM carrequest WHERE userid=$1 ORDER BY createdat DESC",
+      [userid]
+    );
     res.status(200).json({
-      status: 'success',
+      status: "success",
       total: result.rowCount,
       data: { carrequests: result.rows },
     });
@@ -41,49 +66,57 @@ exports.getAllByUserId = async (req, res) => {
   }
 };
 
-exports.getOne = async (req, res) => {
+exports.getOne = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('SELECT * FROM carrequest WHERE id = $1', [id]);
+    const result = await pool.query("SELECT * FROM carrequest WHERE id = $1", [
+      id,
+    ]);
     res.status(200).json({
-      status: 'success',
+      status: "success",
       total: result.rowCount,
-      data: { caravailabilities: result.rows },
+      data: { carrequests: result.rows },
     });
   } catch (err) {
     next(err);
   }
 };
 
-exports.getOneByCarIdAndUserId = async (req, res) => {
+exports.getOneByCaridAndUserid = async (req, res, next) => {
   try {
-    const { carId, userid } = req.params;
-    const result = await pool.query('SELECT * FROM carrequest WHERE carid = $1 AND userid = $2', [carId, userid]);
+    const { carid, userid } = req.params;
+    const result = await pool.query(
+      "SELECT * FROM carrequest WHERE carid = $1 AND userid = $2",
+      [carid, userid]
+    );
     res.status(200).json({
-      status: 'success',
+      status: "success",
       total: result.rowCount,
-      data: { caravailabilities: result.rows },
+      data: { carrequests: result.rows },
     });
   } catch (err) {
     next(err);
   }
 };
 
-exports.create = async (req, res) => {
-  const {carId, startTime, endTime} = req.body;
-  if (!carId || !startTime || !endTime) {
-    return res.status(400).json({ status: false, errorMessage: 'Missing one of the fields required.' });
+exports.create = async (req, res, next) => {
+  const { carid, userid, starttime, endtime } = req.body;
+  if (!carid || !userid || !starttime || !endtime) {
+    return res.status(400).json({
+      status: false,
+      errorMessage: "Missing one of the fields required.",
+    });
   }
 
   try {
     const result = await pool.query(
-      'INSERT INTO carrequest (carId, startTime, endTime) VALUES ($1, $2, $3) RETURNING id',
-      [carId, startTime, endTime]
+      "INSERT INTO carrequest (carid, userid, starttime, endtime) VALUES ($1, $2, $3, $4) RETURNING id",
+      [carid, userid, starttime, endtime]
     );
 
     res.status(201).json({
       status: true,
-      title: 'Created successfully.',
+      title: "Created successfully.",
       id: result.rows[0].id,
     });
   } catch (err) {
@@ -91,31 +124,34 @@ exports.create = async (req, res) => {
   }
 };
 
-exports.update = async (req, res) => {
-  const {carId, startTime, endTime} = req.body;
+exports.update = async (req, res, next) => {
+  const { carid, starttime, endtime } = req.body;
   const { id } = req.params;
 
-  if (!carId || !startTime || !endTime) {
-    return res.status(400).json({ status: false, errorMessage: 'Missing one of the fields required.' });
+  if (!carid || !starttime || !endtime) {
+    return res.status(400).json({
+      status: false,
+      errorMessage: "Missing one of the fields required.",
+    });
   }
 
   try {
     await pool.query(
-      'UPDATE carrequest SET carId = $1, startTime = $2, endTime = $3 WHERE id = $4',
-      [carId, startTime, endTime, id]
+      "UPDATE carrequest SET carid = $1, starttime = $2, endtime = $3 WHERE id = $4",
+      [carid, starttime, endtime, id]
     );
 
-    res.status(200).json({ status: true, name: 'Updated successfully.' });
+    res.status(200).json({ status: true, name: "Updated successfully." });
   } catch (err) {
     next(err);
   }
 };
 
-exports.delete = async (req, res) => {
+exports.delete = async (req, res, next) => {
   try {
     const { id } = req.params;
-    await pool.query('DELETE FROM carrequest WHERE id = $1', [id]);
-    res.status(200).json({ status: true, name: 'Deleted successfully.' });
+    await pool.query("DELETE FROM carrequest WHERE id = $1", [id]);
+    res.status(200).json({ status: true, name: "Deleted successfully." });
   } catch (err) {
     next(err);
   }

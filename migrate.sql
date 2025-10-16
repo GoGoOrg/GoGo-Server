@@ -28,7 +28,7 @@ CREATE TABLE Feedback (
     title VARCHAR,
     description TEXT,
     ischeck BOOLEAN,
-    userId INT REFERENCES users(id),
+    userid INT REFERENCES users(id),
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
@@ -83,11 +83,11 @@ CREATE TABLE Car (
     seats INT,
     doors INT,
     price FLOAT,
-    ownerId INT REFERENCES users(id),
-    brandId INT REFERENCES Brand(id),
-    cityId INT REFERENCES City(id),
-    transmissionTypeId INT REFERENCES TransmissionType(id),
-    fuelTypeId INT REFERENCES FuelType(id),
+    ownerid INT REFERENCES users(id),
+    brandid INT REFERENCES Brand(id),
+    cityid INT REFERENCES City(id),
+    transmissionTypeid INT REFERENCES TransmissionType(id),
+    fuelTypeid INT REFERENCES FuelType(id),
     totalRide INT,
     totalHeart INT,
     mortage BOOLEAN,
@@ -106,8 +106,8 @@ CREATE TABLE Car (
 
 CREATE TABLE Booking (
     id SERIAL PRIMARY KEY,
-    userId INT REFERENCES users(id),
-    carId INT REFERENCES Car(id),
+    userid INT REFERENCES users(id),
+    carid INT REFERENCES Car(id),
     status VARCHAR,
     startDate TIMESTAMP,
     endDate TIMESTAMP,
@@ -119,8 +119,8 @@ CREATE TABLE Booking (
 CREATE TABLE Review (
     id SERIAL PRIMARY KEY,
     content TEXT,
-    userId INT REFERENCES users(id),
-    carId INT REFERENCES Car(id),
+    userid INT REFERENCES users(id),
+    carid INT REFERENCES Car(id),
     star INT,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -129,8 +129,8 @@ CREATE TABLE Review (
 
 CREATE TABLE Favorite (
     id SERIAL PRIMARY KEY,
-    userId INT REFERENCES users(id),
-    carId INT REFERENCES Car(id),
+    userid INT REFERENCES users(id),
+    carid INT REFERENCES Car(id),
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
@@ -149,7 +149,7 @@ CREATE TABLE Tag (
 
 CREATE TABLE CarImage (
     id SERIAL PRIMARY KEY,
-    carId INT,
+    carid INT,
     imageUrl TEXT,
     isPrimary BOOLEAN,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -169,8 +169,8 @@ CREATE TABLE Utility (
 
 CREATE TABLE Car_Tag (
     id SERIAL PRIMARY KEY,
-    carId INT REFERENCES Car(id),
-    tagId INT REFERENCES Tag(id),
+    carid INT REFERENCES Car(id),
+    tagid INT REFERENCES Tag(id),
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
@@ -178,8 +178,8 @@ CREATE TABLE Car_Tag (
 
 CREATE TABLE Car_Utility (
     id SERIAL PRIMARY KEY,
-    carId INT REFERENCES Car(id),
-    utilityId INT REFERENCES Utility(id),
+    carid INT REFERENCES Car(id),
+    utilityid INT REFERENCES Utility(id),
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
@@ -201,8 +201,8 @@ CREATE TABLE Promotion (
 
 CREATE TABLE Car_Promotion (
     id SERIAL PRIMARY KEY,
-    carId INT REFERENCES Car(id),
-    promotionId INT REFERENCES Promotion(id),
+    carid INT REFERENCES Car(id),
+    promotionid INT REFERENCES Promotion(id),
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
@@ -210,7 +210,7 @@ CREATE TABLE Car_Promotion (
 
 CREATE TABLE CarAvailability (
     id SERIAL PRIMARY KEY,
-    carId INT REFERENCES Car(id),
+    carid INT REFERENCES Car(id),
     startTime TIMESTAMP,
     endTime TIMESTAMP,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

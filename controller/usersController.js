@@ -37,16 +37,19 @@ function checkUserAndGenerateToken(user, res) {
 // Get all users
 exports.getAll = async (req, res) => {
   try {
-    pool.query(`SELECT id, username, fullname, email, phone, avatar, about, role, birthday, totalCars, totalHired, responsePercent, agreePercent, responseTime, createdat, updatedat 
-      FROM users`, (err, results) => {
-      if (err) throw err;
+    pool.query(
+      `SELECT id, username, fullname, email, phone, avatar, about, role, birthday, totalCars, totalHired, responsePercent, agreePercent, responseTime, createdat, updatedat 
+      FROM users`,
+      (err, results) => {
+        if (err) throw err;
 
-      res.status(200).json({
-        status: "success",
-        total: results.length,
-        data: { users: results.rows },
-      });
-    });
+        res.status(200).json({
+          status: "success",
+          total: results.length,
+          data: { users: results.rows },
+        });
+      }
+    );
   } catch (err) {
     res.status(500).json({ status: "fail", message: err.message });
   }
@@ -231,7 +234,7 @@ exports.loginGoogle = async (req, res) => {
                 .status(500)
                 .json({ status: false, errorMessage: err.message });
 
-            checkUserAndGenerateToken({ username, id: result.insertId }, res);
+            checkUserAndGenerateToken({ username, id: result.insertid }, res);
           });
         } else {
           checkUserAndGenerateToken({ username, id: results[0].id }, res);

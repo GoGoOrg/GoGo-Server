@@ -15,9 +15,9 @@ exports.getAll = async (req, res, next) => {
   }
 };
 
-exports.getAllByCarId = async (req, res, next) => {
+exports.getAllByCarid = async (req, res, next) => {
   try {
-    const { carId } = req.params;
+    const { carid } = req.params;
 
     const result = await pool.query(
       `SELECT r.*, u.fullname, u.avatar FROM review r
@@ -25,7 +25,7 @@ exports.getAllByCarId = async (req, res, next) => {
       ON r.userid = u.id
       WHERE r.carid = $1
       ORDER BY createdat DESC`,
-      [carId]
+      [carid]
     );
     res.status(200).json({
       status: "success",
@@ -37,15 +37,15 @@ exports.getAllByCarId = async (req, res, next) => {
   }
 };
 
-exports.getAllByCarIdAndUserId = async (req, res, next) => {
+exports.getAllByCaridAndUserid = async (req, res, next) => {
   try {
-    const { carId, userId } = req.params;
+    const { carid, userid } = req.params;
 
     const result = await pool.query(
       `SELECT * FROM review 
       WHERE carid = $1 AND userid = $2
       ORDER BY createdat DESC`,
-      [carId, userId]
+      [carid, userid]
     );
     res.status(200).json({
       status: "success",
@@ -72,8 +72,8 @@ exports.getOne = async (req, res, next) => {
 };
 
 exports.create = async (req, res, next) => {
-  const { content, userId, carId, star } = req.body;
-  if (!content || !userId || !carId || !star) {
+  const { content, userid, carid, star } = req.body;
+  if (!content || !userid || !carid || !star) {
     return res.status(400).json({
       status: false,
       errorMessage: "Missing one of the fields required.",
@@ -82,8 +82,8 @@ exports.create = async (req, res, next) => {
 
   try {
     const result = await pool.query(
-      "INSERT INTO review (content, userId, carId, star) VALUES ($1, $2, $3, $4) RETURNING id",
-      [content, userId, carId, star]
+      "INSERT INTO review (content, userid, carid, star) VALUES ($1, $2, $3, $4) RETURNING id",
+      [content, userid, carid, star]
     );
 
     res.status(201).json({

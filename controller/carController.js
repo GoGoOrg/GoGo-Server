@@ -68,25 +68,48 @@ exports.getMyCar = async (req, res) => {
   }
 };
 
-exports.getAllByOwnerId = async (req, res) => {
+exports.getAllByOwnerid = async (req, res) => {
   try {
     const { id } = req.params;
 
     const result = await pool.query(
-      `SELECT c.*, ci.imageurl, ft.name AS fueltype, tt.name as transmissiontype, b.name AS brand, ct.name as city
-      FROM car c 
+      `SELECT 
+    c.*,
+    ci.imageurl,
+    ft.name AS fueltype,
+    tt.name AS transmissiontype,
+    b.name AS brand,
+    ct.name AS city,
+    COALESCE(
+        json_agg(
+            json_build_object(
+                'userid', cr.userid,
+                'starttime', cr.starttime,
+                'endtime', cr.endtime,
+                'accept', cr.accept,
+                'deny', cr.deny
+            )
+        ) FILTER (WHERE cr.id IS NOT NULL),
+        '[]'
+    ) AS carrequests
+      FROM car c
       LEFT JOIN carimage ci 
-      ON c.id = ci.carid AND ci.isprimary = true 
+          ON c.id = ci.carid AND ci.isprimary = TRUE
       LEFT JOIN fueltype ft
-      ON c.fueltypeid = ft.id
+          ON c.fueltypeid = ft.id
       LEFT JOIN transmissiontype tt
-      ON c.transmissiontypeid = tt.id
+          ON c.transmissiontypeid = tt.id
       LEFT JOIN brand b
-      ON c.brandid = b.id
+          ON c.brandid = b.id
       LEFT JOIN city ct
-      ON c.cityid = ct.id
+          ON c.cityid = ct.id
+      LEFT JOIN carrequest cr
+          ON c.id = cr.carid
       WHERE c.ownerid = $1
-      ORDER BY c.createdat DESC`,
+      GROUP BY 
+          c.id, ci.imageurl, ft.name, tt.name, b.name, ct.name
+      ORDER BY c.createdat DESC;
+`,
       [id]
     );
     res.status(200).json({
@@ -99,7 +122,7 @@ exports.getAllByOwnerId = async (req, res) => {
   }
 };
 
-exports.getAllByBrandId = async (req, res) => {
+exports.getAllByBrandid = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -143,18 +166,18 @@ exports.searchByName = async (req, res) => {
       LEFT JOIN city ct
       ON c.cityid = ct.id
       WHERE c.name ILIKE $1
-      ORDER BY c.createdat DESC`, [`%${name}%`])
+      ORDER BY c.createdat DESC`,
+      [`%${name}%`]
+    );
     res.status(200).json({
       status: "success",
       total: result.rowCount,
       data: { cars: result.rows },
     });
-  }
-  catch (err) {
+  } catch (err) {
     next(err);
   }
 };
-
 
 exports.searchByCityName = async (req, res) => {
   try {
@@ -171,14 +194,15 @@ exports.searchByCityName = async (req, res) => {
       LEFT JOIN city ct
       ON c.cityid = ct.id
       WHERE ct.name ILIKE $1
-      ORDER BY c.createdat DESC`, [`%${name}%`])
+      ORDER BY c.createdat DESC`,
+      [`%${name}%`]
+    );
     res.status(200).json({
       status: "success",
       total: result.rowCount,
       data: { cars: result.rows },
     });
-  }
-  catch (err) {
+  } catch (err) {
     next(err);
   }
 };
@@ -317,7 +341,7 @@ exports.create = async (req, res, next) => {
       ]
     );
 
-    const carId = insertCarResult.rows[0].id;
+    const carid = insertCarResult.rows[0].id;
 
     // Insert multiple car images
     const imageInsertQuery = `
@@ -328,10 +352,10 @@ exports.create = async (req, res, next) => {
     `;
 
     const imageValues = images.flatMap((img, i) => [img, i === 0]); // first image is primary
-    await pool.query(imageInsertQuery, [carId, ...imageValues]);
+    await pool.query(imageInsertQuery, [carid, ...imageValues]);
     await pool.query("COMMIT");
 
-    logger.info("Car created", { carId: result.id, userId: req.user.id });
+    logger.info("Car created", { carid: result.id, userid: req.user.id });
 
     res.status(201).json({
       status: true,

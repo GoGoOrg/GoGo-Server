@@ -32,20 +32,18 @@ exports.getOne = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  const { userId, carId } = req.body;
-  if (!userId || !carId) {
-    return res
-      .status(400)
-      .json({
-        status: false,
-        errorMessage: "Missing one of the fields required.",
-      });
+  const { userid, carid } = req.body;
+  if (!userid || !carid) {
+    return res.status(400).json({
+      status: false,
+      errorMessage: "Missing one of the fields required.",
+    });
   }
 
   try {
     const result = await pool.query(
-      "INSERT INTO favorite (userId, carId) VALUES ($1, $2) RETURNING id",
-      [userId, carId]
+      "INSERT INTO favorite (userid, carid) VALUES ($1, $2) RETURNING id",
+      [userid, carid]
     );
 
     res.status(201).json({
@@ -59,22 +57,20 @@ exports.create = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
-  const { userId, carId } = req.body;
+  const { userid, carid } = req.body;
   const { id } = req.params;
 
-  if (!userId || !carId) {
-    return res
-      .status(400)
-      .json({
-        status: false,
-        errorMessage: "Missing one of the fields required.",
-      });
+  if (!userid || !carid) {
+    return res.status(400).json({
+      status: false,
+      errorMessage: "Missing one of the fields required.",
+    });
   }
 
   try {
     await pool.query(
       "UPDATE favorite SET userid = $1, carid = $2 WHERE id = $3",
-      [userId, carId, id]
+      [userid, carid, id]
     );
 
     res.status(200).json({ status: true, name: "Updated successfully." });

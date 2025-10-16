@@ -32,8 +32,8 @@ exports.getOne = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  const { carId, utilityId } = req.body;
-  if (!carId || !utilityId) {
+  const { carid, utilityid } = req.body;
+  if (!carid || !utilityid) {
     return res.status(400).json({
       status: false,
       errorMessage: "Missing one of the fields required.",
@@ -42,8 +42,8 @@ exports.create = async (req, res) => {
 
   try {
     const result = await pool.query(
-      "INSERT INTO carutility (carId, utilityId) VALUES ($1, $2) RETURNING id",
-      [carId, utilityId]
+      "INSERT INTO carutility (carid, utilityid) VALUES ($1, $2) RETURNING id",
+      [carid, utilityid]
     );
 
     res.status(201).json({
@@ -56,31 +56,33 @@ exports.create = async (req, res) => {
   }
 };
 
-// PATCH /api/car-utility/:carId
+// PATCH /api/car-utility/:carid
 exports.update = async (req, res, next) => {
   const { id } = req.params; // ✅ match your route
-  const utilityIds = req.body;
+  const utilityids = req.body;
 
-  if (!Array.isArray(utilityIds)) {
-    return res.status(400).json({ status: false, errorMessage: "Expected array of utilityIds." });
+  if (!Array.isArray(utilityids)) {
+    return res
+      .status(400)
+      .json({ status: false, errorMessage: "Expected array of utilityids." });
   }
 
   try {
     await pool.query("DELETE FROM car_utility WHERE carid = $1", [id]);
 
-    if (utilityIds.length > 0) {
-      const values = utilityIds.map((_, i) => `($1, $${i + 2})`).join(", ");
+    if (utilityids.length > 0) {
+      const values = utilityids.map((_, i) => `($1, $${i + 2})`).join(", ");
       const query = `INSERT INTO car_utility (carid, utilityid) VALUES ${values}`;
-      await pool.query(query, [id, ...utilityIds]);
+      await pool.query(query, [id, ...utilityids]);
     }
 
-    res.status(200).json({ status: true, message: "Utilities updated successfully." });
+    res
+      .status(200)
+      .json({ status: true, message: "Utilities updated successfully." });
   } catch (err) {
     next(err);
   }
 };
-
-
 
 exports.delete = async (req, res) => {
   try {
