@@ -83,7 +83,14 @@ exports.getAllByOwnerid = async (req, res) => {
     COALESCE(
         json_agg(
             json_build_object(
+                'id', cr.id,
                 'userid', cr.userid,
+                'fullname', u.fullname,
+                'username', u.username,
+                'email', u.email,
+                'phone', u.phone,
+                'about', u.about,
+                'avatar', u.avatar,
                 'starttime', cr.starttime,
                 'endtime', cr.endtime,
                 'accept', cr.accept,
@@ -92,23 +99,26 @@ exports.getAllByOwnerid = async (req, res) => {
         ) FILTER (WHERE cr.id IS NOT NULL),
         '[]'
     ) AS carrequests
-      FROM car c
-      LEFT JOIN carimage ci 
-          ON c.id = ci.carid AND ci.isprimary = TRUE
-      LEFT JOIN fueltype ft
-          ON c.fueltypeid = ft.id
-      LEFT JOIN transmissiontype tt
-          ON c.transmissiontypeid = tt.id
-      LEFT JOIN brand b
-          ON c.brandid = b.id
-      LEFT JOIN city ct
-          ON c.cityid = ct.id
-      LEFT JOIN carrequest cr
-          ON c.id = cr.carid
-      WHERE c.ownerid = $1
-      GROUP BY 
-          c.id, ci.imageurl, ft.name, tt.name, b.name, ct.name
-      ORDER BY c.createdat DESC;
+    FROM car c
+    LEFT JOIN carimage ci 
+        ON c.id = ci.carid AND ci.isprimary = TRUE
+    LEFT JOIN fueltype ft
+        ON c.fueltypeid = ft.id
+    LEFT JOIN transmissiontype tt
+        ON c.transmissiontypeid = tt.id
+    LEFT JOIN brand b
+        ON c.brandid = b.id
+    LEFT JOIN city ct
+        ON c.cityid = ct.id
+    LEFT JOIN carrequest cr
+        ON c.id = cr.carid
+    LEFT JOIN users u
+        ON cr.userid = u.id
+    WHERE c.ownerid = $1
+    GROUP BY 
+        c.id, ci.imageurl, ft.name, tt.name, b.name, ct.name
+    ORDER BY c.createdat DESC;
+
 `,
       [id]
     );

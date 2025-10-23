@@ -431,3 +431,34 @@ CREATE TRIGGER trg_review_delete
 AFTER DELETE ON review
 FOR EACH ROW
 EXECUTE FUNCTION update_car_avgrating();
+
+
+CREATE OR REPLACE FUNCTION auto_deny_conflicting_requests()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Only run this if the updated request was accepted
+    IF NEW.accept = TRUE THEN
+        UPDATE carrequest
+        SET deny = TRUE,
+            accept = FALSE
+        WHERE carid = NEW.carid
+          AND id <> NEW.id
+          AND deletedat IS NULL
+          AND (
+              -- Overlapping time logic
+              (NEW.starttime, NEW.endtime) OVERLAPS (starttime, endtime)
+          );
+
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Step 2: Create the trigger
+CREATE TRIGGER trg_auto_deny_conflicts
+AFTER UPDATE OF accept
+ON carrequest
+FOR EACH ROW
+WHEN (NEW.accept = TRUE)
+EXECUTE FUNCTION auto_deny_conflicting_requests();

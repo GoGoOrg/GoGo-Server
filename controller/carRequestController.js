@@ -125,20 +125,20 @@ exports.create = async (req, res, next) => {
 };
 
 exports.update = async (req, res, next) => {
-  const { carid, starttime, endtime } = req.body;
+  const { accept, deny } = req.body;
   const { id } = req.params;
 
-  if (!carid || !starttime || !endtime) {
+  if (id === undefined || accept === undefined || deny === undefined) {
     return res.status(400).json({
       status: false,
-      errorMessage: "Missing one of the fields required.",
+      errorMessage: "Missing one of the required fields.",
     });
   }
 
   try {
     await pool.query(
-      "UPDATE carrequest SET carid = $1, starttime = $2, endtime = $3 WHERE id = $4",
-      [carid, starttime, endtime, id]
+      "UPDATE carrequest SET accept = $1, deny = $2 WHERE id = $3",
+      [accept, deny, id]
     );
 
     res.status(200).json({ status: true, name: "Updated successfully." });
