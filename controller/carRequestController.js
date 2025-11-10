@@ -3,7 +3,10 @@ const pool = require("../db");
 exports.getAll = async (req, res, next) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM carrequest ORDER BY createdat DESC"
+      `SELECT cr.*, c.name as carname, u.fullname FROM carrequest cr
+      LEFT JOIN car c ON cr.carid = c.id
+      LEFT JOIN users u ON cr.userid = u.id
+      ORDER BY createdat DESC`
     );
     res.status(200).json({
       status: "success",
@@ -100,8 +103,8 @@ exports.getOneByCaridAndUserid = async (req, res, next) => {
 };
 
 exports.create = async (req, res, next) => {
-  const { carid, userid, starttime, endtime } = req.body;
-  if (!carid || !userid || !starttime || !endtime) {
+  const { carid, userid, starttime, endtime, price, totalprice } = req.body;
+  if (!carid || !userid || !starttime || !endtime || !price || !totalprice) {
     return res.status(400).json({
       status: false,
       errorMessage: "Missing one of the fields required.",
@@ -110,7 +113,7 @@ exports.create = async (req, res, next) => {
 
   try {
     const result = await pool.query(
-      "INSERT INTO carrequest (carid, userid, starttime, endtime) VALUES ($1, $2, $3, $4) RETURNING id",
+      "INSERT INTO carrequest (carid, userid, starttime, endtime, price, totalprice) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
       [carid, userid, starttime, endtime]
     );
 

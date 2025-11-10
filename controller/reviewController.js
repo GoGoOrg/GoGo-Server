@@ -3,7 +3,17 @@ const pool = require("../db");
 exports.getAll = async (req, res, next) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM review ORDER BY createdat DESC"
+      `SELECT 
+        r.*,
+        u.id AS userid,
+        u.fullname AS fullname,
+        u.avatar AS avatar,
+        c.name AS carname
+      FROM review r
+      LEFT JOIN users u ON r.userid = u.id
+      LEFT JOIN car c ON r.carid = c.id
+      ORDER BY r.createdat DESC;
+`
     );
     res.status(200).json({
       status: "success",

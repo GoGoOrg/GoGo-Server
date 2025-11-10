@@ -11,6 +11,8 @@ router.route("/:id").get(carControler.getOne);
 router
   .route("/brand/:id")
   .get(cache("carsByBrand", 300), carControler.getAllByBrandid);
+router.get("/carrequest/:id", carControler.getTopCars);
+
 router.route("/search/:name").get(carControler.searchByName);
 router.route("/city/:name").get(carControler.searchByCityName);
 // Protect everything below

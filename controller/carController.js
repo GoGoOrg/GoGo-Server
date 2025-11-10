@@ -68,6 +68,77 @@ exports.getMyCar = async (req, res) => {
   }
 };
 
+exports.getTopCars = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT 
+          c.*,
+          ci.imageurl,
+          ft.name AS fueltype,
+          tt.name AS transmissiontype,
+          b.name AS brand,
+          ct.name AS city,
+          COALESCE(r.totalrequests, 0) AS totalrequests,
+          COALESCE(r.totalincome, 0) AS totalincome,
+          COALESCE(
+              json_agg(
+                  json_build_object(
+                      'id', cr.id,
+                      'userid', cr.userid,
+                      'fullname', u.fullname,
+                      'username', u.username,
+                      'email', u.email,
+                      'phone', u.phone,
+                      'starttime', cr.starttime,
+                      'endtime', cr.endtime,
+                      'accept', cr.accept,
+                      'deny', cr.deny
+                  )
+              ) FILTER (WHERE cr.id IS NOT NULL),
+              '[]'
+          ) AS carrequests
+      FROM car c
+      LEFT JOIN carimage ci 
+          ON c.id = ci.carid AND ci.isprimary = TRUE
+      LEFT JOIN fueltype ft
+          ON c.fueltypeid = ft.id
+      LEFT JOIN transmissiontype tt
+          ON c.transmissiontypeid = tt.id
+      LEFT JOIN brand b
+          ON c.brandid = b.id
+      LEFT JOIN city ct
+          ON c.cityid = ct.id
+      LEFT JOIN (
+          SELECT 
+              carid,
+              COUNT(*) AS totalrequests,
+              SUM(totalprice) AS totalincome
+          FROM carrequest
+          WHERE deletedat IS NULL
+          GROUP BY carid
+      ) r ON r.carid = c.id
+      LEFT JOIN carrequest cr 
+          ON c.id = cr.carid
+      LEFT JOIN users u
+          ON cr.userid = u.id
+      GROUP BY 
+          c.id, ci.imageurl, ft.name, tt.name, b.name, ct.name, r.totalrequests, r.totalincome
+      ORDER BY r.totalrequests ASC
+      LIMIT 20;
+      `
+    );
+
+    res.status(200).json({
+      status: "success",
+      total: result.rowCount,
+      data: { cars: result.rows },
+    });
+  } catch (err) {
+    res.status(500).json({ status: "fail", message: err.message });
+  }
+};
+
 exports.getAllByOwnerid = async (req, res) => {
   try {
     const { id } = req.params;
@@ -216,6 +287,8 @@ exports.searchByCityName = async (req, res) => {
     next(err);
   }
 };
+
+
 
 exports.getOne = async (req, res, next) => {
   try {
