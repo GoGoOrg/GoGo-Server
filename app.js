@@ -27,6 +27,7 @@ const carTagRoutes = require("./routes/carTagRoutes");
 const utilityRoutes = require("./routes/utilityRoutes");
 const carImageRoutes = require("./routes/carImageRoutes");
 const favoriteRoutes = require("./routes/favoriteRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 app.use(cookieParser());
 app.use(
@@ -56,6 +57,7 @@ app.use("/api/car-tag", carTagRoutes);
 app.use("/api/utilities", utilityRoutes);
 app.use("/api/car-image", carImageRoutes);
 app.use("/api/favorite", favoriteRoutes);
+app.use("/api/notification", notificationRoutes);
 
 app.use(errorHandler);
 app.get('/api/health', (req, res) => {

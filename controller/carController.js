@@ -115,7 +115,7 @@ exports.getTopCars = async (req, res) => {
               COUNT(*) AS totalrequests,
               SUM(totalprice) AS totalincome
           FROM carrequest
-          WHERE deletedat IS NULL
+          WHERE deletedat IS NULL AND accept = TRUE
           GROUP BY carid
       ) r ON r.carid = c.id
       LEFT JOIN carrequest cr 

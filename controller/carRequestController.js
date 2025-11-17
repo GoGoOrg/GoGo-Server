@@ -117,6 +117,30 @@ exports.create = async (req, res, next) => {
       [carid, userid, starttime, endtime]
     );
 
+    const requestId = result.rows[0].id;
+
+    const ownerResult = await pool.query(
+      "SELECT ownerid FROM car WHERE id = $1",
+      [carid]
+    );
+    const ownerId = ownerResult.rows[0]?.ownerid;
+
+    if (ownerId) {
+      // 3️⃣ Get user's full name
+      const userResult = await pool.query(
+        "SELECT fullname FROM users WHERE id = $1",
+        [userid]
+      );
+      const userFullName = userResult.rows[0]?.fullname || "Người dùng";
+
+      // 4️⃣ Insert notification for owner
+      const message = `Bạn có một yêu cầu thuê xe ${car.name} từ ${userFullName}`;
+      await pool.query(
+        "INSERT INTO notification (carid, userid, message, isread) VALUES ($1, $2, $3, $4)",
+        [carid, ownerId, message, false]
+      );
+    }
+
     res.status(201).json({
       status: true,
       title: "Created successfully.",
@@ -139,9 +163,40 @@ exports.update = async (req, res, next) => {
   }
 
   try {
-    await pool.query(
-      "UPDATE carrequest SET accept = $1, deny = $2 WHERE id = $3",
+    // 1️⃣ Update the car request
+    const requestResult = await pool.query(
+      "UPDATE carrequest SET accept = $1, deny = $2 WHERE id = $3 RETURNING userid, carid",
       [accept, deny, id]
+    );
+
+    const request = requestResult.rows[0];
+    if (!request) {
+      return res
+        .status(404)
+        .json({ status: false, errorMessage: "Request not found." });
+    }
+
+    const userId = request.userid;
+    const carId = request.carid;
+
+    // 2️⃣ Get car name
+    const carResult = await pool.query("SELECT name FROM car WHERE id = $1", [
+      carId,
+    ]);
+    const carName = carResult.rows[0]?.name || "xe";
+
+    // 3️⃣ Prepare notification message
+    let message = "";
+    if (accept) {
+      message = `Yêu cầu thuê xe "${carName}" của bạn đã được chấp nhận.`;
+    } else if (deny) {
+      message = `Yêu cầu thuê xe "${carName}" của bạn đã bị từ chối.`;
+    }
+
+    // 4️⃣ Insert notification for the user
+    await pool.query(
+      "INSERT INTO notification (carid, userid, message, isread) VALUES ($1, $2, $3, $4)",
+      [carId, userId, message, false]
     );
 
     res.status(200).json({ status: true, name: "Updated successfully." });

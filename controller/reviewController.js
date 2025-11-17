@@ -96,6 +96,32 @@ exports.create = async (req, res, next) => {
       [content, userid, carid, star]
     );
 
+    const reviewId = result.rows[0].id;
+
+    // 2️⃣ Get car name and owner
+    const carResult = await pool.query(
+      "SELECT name, ownerid FROM car WHERE id = $1",
+      [carid]
+    );
+    const car = carResult.rows[0];
+    const ownerId = car?.ownerid;
+
+    if (ownerId) {
+      // 3️⃣ Get user full name
+      const userResult = await pool.query(
+        "SELECT fullname FROM users WHERE id = $1",
+        [userid]
+      );
+      const userFullName = userResult.rows[0]?.fullname || "Người dùng";
+
+      // 4️⃣ Create notification for owner
+      const message = `${userFullName} vừa để lại đánh giá cho xe "${car.name}".`;
+      await pool.query(
+        "INSERT INTO notification (carid, userid, message, isread) VALUES ($1, $2, $3, $4)",
+        [carid, ownerId, message, false]
+      );
+    }
+
     res.status(201).json({
       status: true,
       title: "Created successfully.",

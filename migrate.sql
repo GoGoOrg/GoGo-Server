@@ -218,6 +218,17 @@ CREATE TABLE CarAvailability (
     deletedAt TIMESTAMP
 );
 
+CREATE TABLE Notification (
+    id SERIAL PRIMARY KEY,
+    carid INT REFERENCES Car(id),
+    userid INT REFERENCES users(id),
+    message TEXT,
+    isread BOOLEAN,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deletedAt TIMESTAMP
+);
+
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
