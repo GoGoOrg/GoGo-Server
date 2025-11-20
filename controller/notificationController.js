@@ -1,6 +1,6 @@
 const pool = require("../db");
 
-exports.getAll = async (req, res) => {
+exports.getAll = async (req, res, next) => {
   try {
     const result = await pool.query(
       `SELECT 
@@ -23,8 +23,8 @@ exports.getAll = async (req, res) => {
   }
 };
 
-exports.getAllByUserId = async (req, res) => {
-  const { userid } = req.params;
+exports.getAllByUserId = async (req, res, next) => {
+  const { id } = req.params;
 
   try {
     const result = await pool.query(
@@ -32,13 +32,13 @@ exports.getAllByUserId = async (req, res) => {
       n.*,
       u.fullname as fullname,
       u.avatar as avatar,
-      c.name AS carname,
+      c.name AS carname
       FROM notification n 
       LEFT JOIN users u ON n.userid = u.id
       LEFT JOIN car c ON n.carid = c.id 
       WHERE n.userid = $1
       ORDER BY n.createdat DESC`,
-      [userid]
+      [id]
     );
     res.status(200).json({
       status: "success",
@@ -50,7 +50,7 @@ exports.getAllByUserId = async (req, res) => {
   }
 };
 
-exports.getOne = async (req, res) => {
+exports.getOne = async (req, res, next) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
@@ -67,7 +67,7 @@ exports.getOne = async (req, res) => {
   }
 };
 
-exports.create = async (req, res) => {
+exports.create = async (req, res, next) => {
   const { userid, message, carid } = req.body;
   if (!userid || !message) {
     return res
@@ -91,7 +91,7 @@ exports.create = async (req, res) => {
   }
 };
 
-exports.update = async (req, res) => {
+exports.update = async (req, res, next) => {
   const { isread } = req.body;
   const { id } = req.params;
 
@@ -115,7 +115,7 @@ exports.update = async (req, res) => {
   }
 };
 
-exports.delete = async (req, res) => {
+exports.delete = async (req, res, next) => {
   try {
     const { id } = req.params;
     await pool.query("DELETE FROM notification WHERE id = $1", [id]);

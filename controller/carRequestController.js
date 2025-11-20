@@ -22,7 +22,13 @@ exports.getAllByCaridAndUserid = async (req, res, next) => {
   try {
     const { carid, userid } = req.params;
     const result = await pool.query(
-      "SELECT * FROM carrequest WHERE carid=$1 AND userid = $2 ORDER BY createdat DESC",
+      `
+      SELECT cr.*, c.name as carname, u.fullname FROM carrequest cr
+      LEFT JOIN car c ON cr.carid = c.id
+      LEFT JOIN users u ON cr.userid = u.id
+      WHERE cr.carid = $1 AND cr.userid = $2
+      ORDER BY createdat DESC
+      `,
       [carid, userid]
     );
     res.status(200).json({
@@ -39,7 +45,11 @@ exports.getAllByCarid = async (req, res, next) => {
   try {
     const { carid } = req.params;
     const result = await pool.query(
-      "SELECT * FROM carrequest WHERE carid=$1 ORDER BY createdat DESC",
+      `SELECT cr.*, c.name as carname, u.fullname FROM carrequest cr
+      LEFT JOIN car c ON cr.carid = c.id
+      LEFT JOIN users u ON cr.userid = u.id
+      WHERE cr.carid = $1
+      ORDER BY createdat DESC`,
       [carid]
     );
     res.status(200).json({
@@ -56,7 +66,14 @@ exports.getAllByUserid = async (req, res, next) => {
   try {
     const { userid } = req.params;
     const result = await pool.query(
-      "SELECT * FROM carrequest WHERE userid=$1 ORDER BY createdat DESC",
+      `SELECT cr.*, c.name as carname, u.fullname, ci.imageurl as carimage FROM carrequest cr
+      LEFT JOIN car c ON cr.carid = c.id
+      LEFT JOIN users u ON cr.userid = u.id
+      LEFT JOIN carimage ci 
+        ON c.id = ci.carid AND ci.isprimary = TRUE
+      WHERE cr.userid = $1
+      ORDER BY createdat DESC
+      `,
       [userid]
     );
     res.status(200).json({
@@ -104,6 +121,7 @@ exports.getOneByCaridAndUserid = async (req, res, next) => {
 
 exports.create = async (req, res, next) => {
   const { carid, userid, starttime, endtime, price, totalprice } = req.body;
+
   if (!carid || !userid || !starttime || !endtime || !price || !totalprice) {
     return res.status(400).json({
       status: false,
@@ -112,18 +130,22 @@ exports.create = async (req, res, next) => {
   }
 
   try {
+    // 1️⃣ Create the request
     const result = await pool.query(
       "INSERT INTO carrequest (carid, userid, starttime, endtime, price, totalprice) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
-      [carid, userid, starttime, endtime]
+      [carid, userid, starttime, endtime, price, totalprice]
     );
 
     const requestId = result.rows[0].id;
 
-    const ownerResult = await pool.query(
-      "SELECT ownerid FROM car WHERE id = $1",
+    // 2️⃣ Get car name + owner id
+    const carResult = await pool.query(
+      "SELECT name, ownerid FROM car WHERE id = $1",
       [carid]
     );
-    const ownerId = ownerResult.rows[0]?.ownerid;
+
+    const car = carResult.rows[0];
+    const ownerId = car?.ownerid;
 
     if (ownerId) {
       // 3️⃣ Get user's full name
@@ -133,7 +155,7 @@ exports.create = async (req, res, next) => {
       );
       const userFullName = userResult.rows[0]?.fullname || "Người dùng";
 
-      // 4️⃣ Insert notification for owner
+      // 4️⃣ Create notification for owner
       const message = `Bạn có một yêu cầu thuê xe ${car.name} từ ${userFullName}`;
       await pool.query(
         "INSERT INTO notification (carid, userid, message, isread) VALUES ($1, $2, $3, $4)",
@@ -144,7 +166,7 @@ exports.create = async (req, res, next) => {
     res.status(201).json({
       status: true,
       title: "Created successfully.",
-      id: result.rows[0].id,
+      id: requestId,
     });
   } catch (err) {
     next(err);

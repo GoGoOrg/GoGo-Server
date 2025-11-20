@@ -57,7 +57,7 @@ app.use("/api/car-tag", carTagRoutes);
 app.use("/api/utilities", utilityRoutes);
 app.use("/api/car-image", carImageRoutes);
 app.use("/api/favorite", favoriteRoutes);
-app.use("/api/notification", notificationRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.use(errorHandler);
 app.get('/api/health', (req, res) => {
