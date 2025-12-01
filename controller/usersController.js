@@ -77,10 +77,10 @@ exports.getOne = async (req, res) => {
 
 // Update user
 exports.update = async (req, res) => {
-  const { name, email, phone, birthDate, billingAddress } = req.body;
+  const { fullname, email, phone, birthday } = req.body;
   const { id } = req.params;
 
-  if (!name || !email || !phone || !birthDate || !billingAddress) {
+  if (!fullname || !email || !phone || !birthday) {
     return res
       .status(400)
       .json({ status: false, errorMessage: "Missing required fields" });
@@ -89,10 +89,10 @@ exports.update = async (req, res) => {
   try {
     const sql = `
             UPDATE users
-            SET name = $1, email = $2, phone = $3, birthDate = $4, billingAddress = $5
-            WHERE id = $6
+            SET fullname = $1, email = $2, phone = $3, birthday = $4
+            WHERE id = $5
         `;
-    const values = [name, email, phone, birthDate, billingAddress, id];
+    const values = [fullname, email, phone, birthday, id];
 
     pool.query(sql, values, (err) => {
       if (err)
