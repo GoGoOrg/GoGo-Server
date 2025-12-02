@@ -176,17 +176,19 @@ exports.register = async (req, res) => {
         };
 
         pool.query(
-          "INSERT INTO users (username, password, fullname, email, phone, role) VALUES ($1, $2, $3, $4, $5, $6)",
+          "INSERT INTO users (username, password, fullname, email, phone, role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
           [username, hashedPassword, fullName, email, phone, role],
-          (err) => {
+          (err, result) => {
             if (err)
               return res
                 .status(500)
                 .json({ status: false, errorMessage: err.message });
 
-            res
-              .status(200)
-              .json({ status: true, title: "Registered successfully" });
+            res.status(200).json({
+              status: true,
+              title: "Registered successfully",
+              user: result.rows[0],
+            });
           }
         );
       }
