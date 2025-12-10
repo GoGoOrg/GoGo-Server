@@ -4,8 +4,8 @@ const cookieParser = require("cookie-parser");
 
 const app = express();
 
-const apiLimiter = require("./middleware/rateLimiter"); 
-const logger = require('./utils/logger');
+const apiLimiter = require("./middleware/rateLimiter");
+const logger = require("./utils/logger");
 
 const errorHandler = require("./middleware/errorHandler");
 
@@ -32,7 +32,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5173", // Your frontend URL
+    origin: "https://gogoui.netlify.app", // Your frontend URL
     credentials: true,
   })
 );
@@ -60,9 +60,9 @@ app.use("/api/favorite", favoriteRoutes);
 app.use("/api/notifications", notificationRoutes);
 
 app.use(errorHandler);
-app.get('/api/health', (req, res) => {
-    logger.info('Health check requested');
-    res.json({ status: 'ok' });
+app.get("/api/health", (req, res) => {
+  logger.info("Health check requested");
+  res.json({ status: "ok" });
 });
 
 module.exports = app;
