@@ -9,6 +9,9 @@ const dbConfig = {
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
   database: process.env.DB_NAME,
+  ssl: {
+    rejectUnauthorized: false
+  }
 };
 
 const client = new Client(dbConfig);
