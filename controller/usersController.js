@@ -18,8 +18,8 @@ function checkUserAndGenerateToken(user, res) {
 
       res.cookie("Token", token, {
         httpOnly: true,
-        secure: false,
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
         maxAge: 2 * 24 * 60 * 60 * 1000,
       });
 
