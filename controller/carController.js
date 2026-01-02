@@ -438,7 +438,7 @@ exports.create = async (req, res, next) => {
     await pool.query(imageInsertQuery, [carid, ...imageValues]);
     await pool.query("COMMIT");
 
-    logger.info("Car created", { carid: result.id, userid: req.user.id });
+    logger.info("Car created", { carid: insertCarResult.id, userid: req.user.id });
 
     res.status(201).json({
       status: true,
@@ -449,7 +449,7 @@ exports.create = async (req, res, next) => {
   }
 };
 
-exports.update = async (req, res) => {
+exports.update = async (req, res, next) => {
   const { name } = req.body;
   const { id } = req.params;
 
