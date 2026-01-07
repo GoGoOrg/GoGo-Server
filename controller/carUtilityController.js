@@ -1,6 +1,6 @@
 const pool = require("../db");
 
-exports.getAll = async (req, res) => {
+exports.getAll = async (req, res, next) => {
   try {
     const result = await pool.query(
       "SELECT * FROM car_utility ORDER BY createdat DESC"
@@ -15,7 +15,7 @@ exports.getAll = async (req, res) => {
   }
 };
 
-exports.getOne = async (req, res) => {
+exports.getOne = async (req, res, next) => {
   try {
     const { id } = req.params;
     const result = await pool.query("SELECT * FROM car_utility WHERE id = $1", [
@@ -31,7 +31,7 @@ exports.getOne = async (req, res) => {
   }
 };
 
-exports.create = async (req, res) => {
+exports.create = async (req, res, next) => {
   const { carid, utilityid } = req.body;
   if (!carid || !utilityid) {
     return res.status(400).json({
@@ -84,7 +84,7 @@ exports.update = async (req, res, next) => {
   }
 };
 
-exports.delete = async (req, res) => {
+exports.delete = async (req, res, next) => {
   try {
     const { id } = req.params;
     await pool.query("DELETE FROM car_utility WHERE id = $1", [id]);

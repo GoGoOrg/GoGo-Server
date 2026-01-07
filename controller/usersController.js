@@ -35,7 +35,7 @@ function checkUserAndGenerateToken(user, res) {
 }
 
 // Get all users
-exports.getAll = async (req, res) => {
+exports.getAll = async (req, res, next) => {
   try {
     pool.query(
       `SELECT id, username, fullname, email, phone, avatar, about, role, birthday, totalCars, totalHired, responsePercent, agreePercent, responseTime, createdat, updatedat 
@@ -56,7 +56,7 @@ exports.getAll = async (req, res) => {
 };
 
 // Get one user
-exports.getOne = async (req, res) => {
+exports.getOne = async (req, res, next) => {
   try {
     pool.query(
       "SELECT * FROM users WHERE id = $1",
@@ -76,7 +76,7 @@ exports.getOne = async (req, res) => {
 };
 
 // Update user
-exports.update = async (req, res) => {
+exports.update = async (req, res, next) => {
   const { fullname, email, phone, birthday } = req.body;
   const { id } = req.params;
 
@@ -108,7 +108,7 @@ exports.update = async (req, res) => {
 };
 
 // Update avatar
-exports.updateAvatar = async (req, res) => {
+exports.updateAvatar = async (req, res, next) => {
   const { avatar } = req.body;
   const { id } = req.params;
 
@@ -139,7 +139,7 @@ exports.updateAvatar = async (req, res) => {
 };
 
 // Register
-exports.register = async (req, res) => {
+exports.register = async (req, res, next) => {
   const { username, password, fullName, email, phone, role } = req.body;
 
   if (!username || !password || !fullName || !email || !phone || !role) {
@@ -200,7 +200,7 @@ exports.register = async (req, res) => {
 };
 
 // Google login
-exports.loginGoogle = async (req, res) => {
+exports.loginGoogle = async (req, res, next) => {
   const { username, password, name, email, avatar } = req.body;
 
   if (!username || !password || !email || !avatar) {
@@ -249,7 +249,7 @@ exports.loginGoogle = async (req, res) => {
 };
 
 // Get current user
-exports.getMe = async (req, res) => {
+exports.getMe = async (req, res, next) => {
   const token = req.cookies["Token"];
 
   if (!token)
@@ -284,7 +284,7 @@ exports.getMe = async (req, res) => {
 };
 
 // Delete user
-exports.delete = async (req, res) => {
+exports.delete = async (req, res, next) => {
   try {
     pool.query("DELETE FROM users WHERE id = $1", [req.params.id], (err) => {
       if (err)
@@ -300,7 +300,7 @@ exports.delete = async (req, res) => {
 };
 
 // Login
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -342,7 +342,7 @@ exports.login = async (req, res) => {
 };
 
 // Logout
-exports.logout = async (req, res) => {
+exports.logout = async (req, res, next) => {
   try {
     res.clearCookie("Token", {
       httpOnly: true,
@@ -356,7 +356,7 @@ exports.logout = async (req, res) => {
 };
 
 // Change password
-exports.changePassword = async (req, res) => {
+exports.changePassword = async (req, res, next) => {
   const { username, id, password, newPassword } = req.body;
 
   if (!username || !id || !password || !newPassword) {

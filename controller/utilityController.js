@@ -1,6 +1,6 @@
 const pool = require("../db");
 
-exports.getAll = async (req, res) => {
+exports.getAll = async (req, res, next) => {
   try {
     const result = await pool.query(
       "SELECT * FROM utility ORDER BY createdat DESC"
@@ -15,7 +15,7 @@ exports.getAll = async (req, res) => {
   }
 };
 
-exports.getOne = async (req, res) => {
+exports.getOne = async (req, res, next) => {
   try {
     const { id } = req.params;
     const result = await pool.query("SELECT * FROM utility WHERE id = $1", [
@@ -31,15 +31,13 @@ exports.getOne = async (req, res) => {
   }
 };
 
-exports.create = async (req, res) => {
+exports.create = async (req, res, next) => {
   const { name, description, imageUrl } = req.body;
   if (!name || !description || !imageUrl) {
-    return res
-      .status(400)
-      .json({
-        status: false,
-        errorMessage: "Missing one of the fields required.",
-      });
+    return res.status(400).json({
+      status: false,
+      errorMessage: "Missing one of the fields required.",
+    });
   }
 
   try {
@@ -58,17 +56,15 @@ exports.create = async (req, res) => {
   }
 };
 
-exports.update = async (req, res) => {
+exports.update = async (req, res, next) => {
   const { name, description, imageUrl } = req.body;
   const { id } = req.params;
 
   if (!name || !description || !imageUrl) {
-    return res
-      .status(400)
-      .json({
-        status: false,
-        errorMessage: "Missing one of the fields required.",
-      });
+    return res.status(400).json({
+      status: false,
+      errorMessage: "Missing one of the fields required.",
+    });
   }
 
   try {
@@ -83,7 +79,7 @@ exports.update = async (req, res) => {
   }
 };
 
-exports.delete = async (req, res) => {
+exports.delete = async (req, res, next) => {
   try {
     const { id } = req.params;
     await pool.query("DELETE FROM utility WHERE id = $1", [id]);

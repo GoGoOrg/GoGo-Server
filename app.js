@@ -32,7 +32,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "https://gogoui.netlify.app", // Your frontend URL
+    origin: process.env.VITE_APP_BASE_URL, // Your frontend URL
     credentials: true,
   })
 );

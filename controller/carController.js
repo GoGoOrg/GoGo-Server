@@ -2,7 +2,7 @@ const pool = require("../db");
 const jwt = require("jsonwebtoken");
 const logger = require("../utils/logger");
 
-exports.getAll = async (req, res) => {
+exports.getAll = async (req, res, next) => {
   try {
     const result = await pool.query(
       `SELECT c.*, ci.imageurl, ft.name AS fueltype, tt.name as transmissiontype, b.name AS brand, u.fullname AS ownername, u.avatar AS owneravatar, ct.name AS city
@@ -31,7 +31,7 @@ exports.getAll = async (req, res) => {
   }
 };
 
-exports.getMyCar = async (req, res) => {
+exports.getMyCar = async (req, res, next) => {
   const token = req.cookies["Token"];
 
   if (!token)
@@ -68,7 +68,7 @@ exports.getMyCar = async (req, res) => {
   }
 };
 
-exports.getTopCars = async (req, res) => {
+exports.getTopCars = async (req, res, next) => {
   try {
     const result = await pool.query(
       `
@@ -139,7 +139,7 @@ exports.getTopCars = async (req, res) => {
   }
 };
 
-exports.getAllByOwnerid = async (req, res) => {
+exports.getAllByOwnerid = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -203,7 +203,7 @@ exports.getAllByOwnerid = async (req, res) => {
   }
 };
 
-exports.getAllByBrandid = async (req, res) => {
+exports.getAllByBrandid = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -232,7 +232,7 @@ exports.getAllByBrandid = async (req, res) => {
   }
 };
 
-exports.searchByName = async (req, res) => {
+exports.searchByName = async (req, res, next) => {
   try {
     const { name } = req.params;
     const result = await pool.query(
@@ -260,7 +260,7 @@ exports.searchByName = async (req, res) => {
   }
 };
 
-exports.searchByCityName = async (req, res) => {
+exports.searchByCityName = async (req, res, next) => {
   try {
     const { name } = req.params;
     const result = await pool.query(
@@ -287,8 +287,6 @@ exports.searchByCityName = async (req, res) => {
     next(err);
   }
 };
-
-
 
 exports.getOne = async (req, res, next) => {
   try {
@@ -438,7 +436,10 @@ exports.create = async (req, res, next) => {
     await pool.query(imageInsertQuery, [carid, ...imageValues]);
     await pool.query("COMMIT");
 
-    logger.info("Car created", { carid: result.id, userid: req.user.id });
+    logger.info("Car created", {
+      carid: insertCarResult.id,
+      userid: req.user.id,
+    });
 
     res.status(201).json({
       status: true,
@@ -449,7 +450,7 @@ exports.create = async (req, res, next) => {
   }
 };
 
-exports.update = async (req, res) => {
+exports.update = async (req, res, next) => {
   const { name } = req.body;
   const { id } = req.params;
 
@@ -472,7 +473,7 @@ exports.update = async (req, res) => {
   }
 };
 
-exports.delete = async (req, res) => {
+exports.delete = async (req, res, next) => {
   try {
     const { id } = req.params;
     await pool.query("DELETE FROM car WHERE id = $1", [id]);

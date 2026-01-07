@@ -1,7 +1,7 @@
 const { Client } = require("pg");
 const dotenv = require("dotenv");
 
-dotenv.config({ path: './.env' });
+dotenv.config({ path: "./.env" });
 
 const dbConfig = {
   user: process.env.DB_USER,
@@ -9,9 +9,6 @@ const dbConfig = {
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
   database: process.env.DB_NAME,
-  ssl: {
-    rejectUnauthorized: false
-  }
 };
 
 const client = new Client(dbConfig);
