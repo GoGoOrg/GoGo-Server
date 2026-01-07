@@ -445,25 +445,127 @@ exports.create = async (req, res, next) => {
       title: "Created successfully.",
     });
   } catch (err) {
+    await pool.query("ROLLBACK");
     next(err);
   }
 };
 
 exports.update = async (req, res, next) => {
-  const { name } = req.body;
-  const { id } = req.params;
-
-  if (!name) {
+  const {
+    name,
+    licenseplate,
+    description,
+    regulation,
+    color,
+    seats,
+    price,
+    brandid,
+    cityid,
+    transmissiontypeid,
+    fueltypeid,
+    insurance,
+    images,
+  } = req.body;
+  if (
+    !name ||
+    !licenseplate ||
+    !description ||
+    !regulation ||
+    !color ||
+    !seats ||
+    !price ||
+    !brandid ||
+    !cityid ||
+    !transmissiontypeid ||
+    !fueltypeid ||
+    !insurance
+  ) {
     return res
       .status(400)
-      .json({ status: false, errorMessage: "Missing name." });
+      .json({ status: false, errorMessage: "Missing required fields" });
   }
+  const token = req.cookies["Token"];
+  const { id } = req.params;
+  console.log(id);
+
+  if (!token)
+    return res
+      .status(400)
+      .json({ status: false, errorMessage: "Token missing" });
 
   try {
-    await pool.query("UPDATE car SET name = $1 WHERE id = $2", [name, id]);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    res.status(200).json({ status: true, message: "Updated successfully." });
+    await pool.query("BEGIN");
+
+    const updateCarResult = await pool.query(
+      `
+      UPDATE car
+      SET
+        name = $1,
+        licenseplate = $2,
+        description = $3,
+        regulation = $4,
+        color = $5,
+        seats = $6,
+        price = $7,
+        brandid = $8,
+        cityid = $9,
+        transmissiontypeid = $10,
+        fueltypeid = $11,
+        insurance = $12,
+        updatedat = NOW()
+      WHERE id = $13
+        AND ownerid = $14
+      RETURNING id
+      `,
+      [
+        name,
+        licenseplate,
+        description,
+        regulation,
+        color,
+        seats,
+        price,
+        brandid,
+        cityid,
+        transmissiontypeid,
+        fueltypeid,
+        insurance,
+        id, // existing car id
+        decoded.id, // owner check (important for security)
+      ]
+    );
+
+    if (updateCarResult.rowCount === 0) {
+      throw new Error("Car not found or not authorized");
+    }
+
+    // 3. Insert new images (if provided)
+    if (images && images.length > 0) {
+      await pool.query("DELETE FROM carimage WHERE carid = $1", [id]);
+
+      const imageInsertQuery = `
+      INSERT INTO carimage (carid, imageurl, isprimary)
+      VALUES ${images
+        .map((_, i) => `($1, $${i * 2 + 2}, $${i * 2 + 3})`)
+        .join(",\n")}
+    `;
+
+      const imageValues = images.flatMap((img, i) => [
+        img,
+        i === 0, // first image is primary
+      ]);
+
+      await pool.query(imageInsertQuery, [id, ...imageValues]);
+    }
+
+    // 4. Commit
+    await pool.query("COMMIT");
+
+    res.json({ success: true, id });
   } catch (err) {
+    await pool.query("ROLLBACK");
     next(err);
   }
 };

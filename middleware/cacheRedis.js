@@ -17,7 +17,7 @@ function cache(keyPrefix, ttlSeconds = 300) {
       };
 
       next();
-    } catch (error) {
+    } catch (err) {
       console.error("Redis error:", error);
       next();
     }

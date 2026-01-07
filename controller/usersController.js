@@ -350,7 +350,7 @@ exports.logout = async (req, res, next) => {
       sameSite: "strict",
     });
     res.status(200).json({ message: "Logged out successfully" });
-  } catch (error) {
+  } catch (err) {
     res.status(500).json({ status: "fail", message: err.message });
   }
 };
