@@ -377,7 +377,9 @@ exports.create = async (req, res, next) => {
     !insurance ||
     !images
   ) {
-    next(err);
+    return res
+      .status(400)
+      .json({ status: false, errorMessage: "Missing required fields" });
   }
   const token = req.cookies["Token"];
 
@@ -436,10 +438,7 @@ exports.create = async (req, res, next) => {
     await pool.query(imageInsertQuery, [carid, ...imageValues]);
     await pool.query("COMMIT");
 
-    logger.info("Car created", {
-      carid: insertCarResult.id,
-      userid: req.user.id,
-    });
+    logger.info("Car created", { carid, userid: decoded.id });
 
     res.status(201).json({
       status: true,
@@ -461,13 +460,9 @@ exports.update = async (req, res, next) => {
   }
 
   try {
-    await pool.query("UPDATE car SET name = $1 WHERE id = $2", [
-      name,
-      description,
-      id,
-    ]);
+    await pool.query("UPDATE car SET name = $1 WHERE id = $2", [name, id]);
 
-    res.status(200).json({ status: true, name: "Updated successfully." });
+    res.status(200).json({ status: true, message: "Updated successfully." });
   } catch (err) {
     next(err);
   }
