@@ -361,6 +361,7 @@ exports.create = async (req, res, next) => {
     transmissiontypeid,
     fueltypeid,
     insurance,
+    driver,
     images,
   } = req.body;
   if (
@@ -375,6 +376,7 @@ exports.create = async (req, res, next) => {
     !transmissiontypeid ||
     !fueltypeid ||
     !insurance ||
+    !driver ||
     !images
   ) {
     return res
@@ -399,11 +401,11 @@ exports.create = async (req, res, next) => {
       INSERT INTO car (
         name, licenseplate, description, regulation, color,
         seats, price, ownerid, brandid, cityid,
-        transmissiontypeid, fueltypeid, insurance
+        transmissiontypeid, fueltypeid, insurance, driver
       ) VALUES (
         $1, $2, $3, $4, $5, 
         $6, $7, $8, $9, $10,
-        $11, $12, $13
+        $11, $12, $13, $14
       )
       RETURNING id
     `,
@@ -421,6 +423,7 @@ exports.create = async (req, res, next) => {
         transmissiontypeid,
         fueltypeid,
         insurance,
+        driver,
       ]
     );
 
@@ -464,6 +467,7 @@ exports.update = async (req, res, next) => {
     transmissiontypeid,
     fueltypeid,
     insurance,
+    driver,
     images,
   } = req.body;
   if (
@@ -478,7 +482,8 @@ exports.update = async (req, res, next) => {
     !cityid ||
     !transmissiontypeid ||
     !fueltypeid ||
-    !insurance
+    !insurance ||
+    !driver
   ) {
     return res
       .status(400)
@@ -514,9 +519,10 @@ exports.update = async (req, res, next) => {
         transmissiontypeid = $10,
         fueltypeid = $11,
         insurance = $12,
+        driver = $13,
         updatedat = NOW()
-      WHERE id = $13
-        AND ownerid = $14
+      WHERE id = $14
+        AND ownerid = $15
       RETURNING id
       `,
       [
@@ -532,6 +538,7 @@ exports.update = async (req, res, next) => {
         transmissiontypeid,
         fueltypeid,
         insurance,
+        driver,
         id, // existing car id
         decoded.id, // owner check (important for security)
       ]
