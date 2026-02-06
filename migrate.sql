@@ -98,6 +98,7 @@ CREATE TABLE Car (
     pricePerDay INT,
     discountValue INT,
     discountType VARCHAR,
+    driver BOOLEAN DEFAULT FALSE,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deletedAt TIMESTAMP
